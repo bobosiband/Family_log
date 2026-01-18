@@ -1,11 +1,11 @@
-import { useState } from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import Navbar from './components/Navbar'
-import Home from './pages/Home'
-import Register from './pages/Register'
-import Login from './pages/Login'
-import Profile from './pages/Profile'
-import './App.css'
+import { BrowserRouter } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
+
+import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import Profile from "./pages/Profile";
 
 export default function App() {
   return (
@@ -18,6 +18,5 @@ export default function App() {
         <Route path="/profile" element={<Profile />} />
       </Routes>
     </BrowserRouter>
-
   );
 }
