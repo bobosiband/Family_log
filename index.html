@@ -6,6 +6,40 @@
     <title>Document</title>
 </head>
 <body>
-
+    <h1>Hello World</h1>
+    <button>Click me</button>
+    <script>
+        document.querySelector('button').addEventListener('click', function() {
+            alert('Button clicked');
+        });
+        document.querySelector('button').addEventListener('mouseover', function() {
+            document.querySelector('button').style.backgroundColor = 'red';
+        });
+        document.querySelector('button').addEventListener('mouseout', function() {
+            document.querySelector('button').style.backgroundColor = 'blue';
+        });
+        document.querySelector('button').addEventListener('mousemove', function() {
+            document.querySelector('button').style.backgroundColor = 'green';
+        });
+    </script>
+    <style>
+        button {
+            background-color: blue;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+        }
+    </style>
+    <style>
+        button:hover {
+            background-color: red;
+        }
+    </style>
+    <style>
+        button:active {
+            background-color: green;
+        }
+    </style>
 </body>
 </html>
