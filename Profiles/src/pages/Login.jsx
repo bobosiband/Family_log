@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 
 /**
  * Login page
@@ -10,6 +11,8 @@ export default function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     
+    // get user from auth context
+    const { login } = useAuth();
     // navigate to profile page
     const navigate = useNavigate();
     // handle submit
@@ -23,6 +26,8 @@ export default function Login() {
         }
         // log username and password
         console.log(username, password);
+        // call login function from auth context
+        login(username);
         // navigate to profile page
         navigate('/profile');
     }
