@@ -12,3 +12,6 @@ let data = {
 function getData() {
     return data;
 }
+export {
+    getData,
+}
