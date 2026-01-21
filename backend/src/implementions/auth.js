@@ -28,8 +28,23 @@ function authRegisterUser(username, email, password) {
     data.users.push(newUser);
     return {newUser};
 }
+function authLoginUser(username, password) {
+    let data = getData();
+    const user = data.users.find( (user) => user.username === username && user.password === password);
+    if (!user) {
+        return {
+            error: "invalid credentials",
+            message: "incorrrect username or password",
+        }
+    }
+    // find user id 
 
+    return {
+        userId: user.id,
+    };
+}
 
 export {
     authRegisterUser,
+    authLoginUser,
 };
