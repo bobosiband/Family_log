@@ -24,7 +24,7 @@ app.get('/', (req, res) => {
 
 // auth routes 
 
-app.post('/auth/regisster', (req, res) => {
+app.post('/auth/register', (req, res) => {
     const { username, email, password } = req.body;
     const result = authRegisterUser(username, email, password);
     if ('error' in result) { 
