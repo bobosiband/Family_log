@@ -2,8 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 
-import { getData } from './dataStore.js';
-import { authRegisterUser, authLoginUser } from './implementions/auth.js';
+// import { getData } from './dataStore.js';
+import { authRegisterUser, authLoginUser } from './implementations/auth.js';
 
 // set up express app
 const app = express();
@@ -24,14 +24,26 @@ app.get('/', (req, res) => {
 
 // auth routes 
 
+// register route 
 app.post('/auth/register', (req, res) => {
     const { username, email, password } = req.body;
     const result = authRegisterUser(username, email, password);
     if ('error' in result) { 
         return res.status(400).json(result);
     }
-    console.log(result);
     return res.status(200).json(result)
+});
+
+// login route 
+app.post('/auth/login', (req, res) => {
+  const { username, password } = req.body;
+  const result = authLoginUser(username, password);
+
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json(result);
 });
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
