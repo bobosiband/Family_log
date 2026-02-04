@@ -8,8 +8,25 @@ import { validateEmail, validateUsername, validatePasswordStrength } from "../va
  * @param {*} password 
  * @returns  
  */
-function authRegisterUser(username, email, password) {
+function authRegisterUser(name, surname, username, email, password) {
     // console.log(username, email, password);
+    name = name.trim();
+    surname = surname.trim();
+    username = username.trim();
+    email = email.trim();
+    password = password.trim();
+    if (name.length === 0) {
+      return {
+        error: "invalid name",
+        message: "name cannot be empty"
+      }
+    }
+    if (surname.length === 0) {
+      return {
+        error: "invalid surname",
+        message: "surname cannot be empty"
+      }
+    }
     if (!validateUsername(username)) {
       return {
         error: "invalid username",
@@ -40,6 +57,8 @@ function authRegisterUser(username, email, password) {
     }
     const newUser = {
         id: ++data.totalusersevercreated,
+        name,
+        surname,
         username,
         email,
         password
@@ -47,6 +66,8 @@ function authRegisterUser(username, email, password) {
     data.users.push(newUser);
     return {newUser};
 }
+// console.log(authRegisterUser("bongani", "bobo@gmail.com", "passwordis123@1"));
+// console.log(authRegisterUser("bongani", "bobo@gmail.com", "password123@1"));
 function authLoginUser(username, password) {
     let data = getData();
     const user = data.users.find( (user) => user.username === username && user.password === password);

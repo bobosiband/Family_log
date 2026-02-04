@@ -1,6 +1,8 @@
 import { authLoginUser, authRegisterUser } from '../implementations/auth.js';
 import { getData } from '../dataStore.js';
 
+
+
 describe('authLoginUser', () => {
   beforeEach(() => {
     // Reset datastore

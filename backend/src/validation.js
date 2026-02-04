@@ -17,7 +17,7 @@ function validatePasswordStrength(password) {
         return false;
     }
    
-    // check for special chars at least 2
+    // check for special chars at least 1
     const specialchars =  password.match(/[^A-Za-z0-9]/g) || [];
     // console.log(specialchars);
     if (specialchars.length < 1) {

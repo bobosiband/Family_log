@@ -16,7 +16,7 @@ export default function Login() {
     // navigate to profile page
     const navigate = useNavigate();
     // handle submit
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         // prevent default behavior
         e.preventDefault();
         // check if username and password are empty
@@ -24,12 +24,30 @@ export default function Login() {
             alert('Please enter a username and password');
             return;
         }
-        // log username and password
-        console.log(username, password);
-        // call login function from auth context
-        login(username);
-        // navigate to profile page
-        navigate('/profile');
+        try {
+          // send login request to backend 
+          const response = await fetch('http://localhost:3000/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+          });
+          const data = await response.json();
+          console.log('LOGIN RESPONSE:', data);
+          if (!response.ok) {
+            alert(data.message || 'Login failed');
+            return;
+          }
+          // call login function from auth context
+          login(data.userId);
+           // navigate to profile page
+          navigate('/profile');
+
+        } catch (error) {
+          console.error(error);
+          alert('server not reachable')
+        }
     }
     return (
       <main>

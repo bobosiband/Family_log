@@ -1,20 +1,24 @@
 import { createContext, useContext, useState } from 'react';
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [userId, setUserId] = useState(
+    localStorage.getItem('userId')
+  );
 
-  const login = (username) => {
-    setUser({ username }); // fake user object
+  const login = (id) => {
+    setUserId(id);
+    localStorage.setItem('userId', id);
   };
 
   const logout = () => {
-    setUser(null);
+    setUserId(null);
+    localStorage.removeItem('userId');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ userId, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

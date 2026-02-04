@@ -26,8 +26,10 @@ app.get('/', (req, res) => {
 
 // register route 
 app.post('/auth/register', (req, res) => {
-    const { username, email, password } = req.body;
-    const result = authRegisterUser(username, email, password);
+    const { name, surname, username, email, password } = req.body;
+    // console.log(username, email, password);
+    const result = authRegisterUser(name, surname, username, email, password);
+    console.log(result);
     if ('error' in result) { 
         return res.status(400).json(result);
     }

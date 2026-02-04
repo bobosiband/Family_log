@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 
 export default function Register() {
     // state for full name, email, password and confirm password
-    const [Name, setName] = useState('');
+    const [name, setName] = useState('');
     const [surname, setSurname] = useState('');
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
@@ -11,29 +12,55 @@ export default function Register() {
     const [confirmPassword, setConfirmPassword] = useState('');
     // navigate to profile page
     const navigate = useNavigate();
+    // login
+    const { login } = useAuth();
     // handle submit
-    const handleRegister = (e) => {
-        e.preventDefault();
-        if (!Name || !surname || !username || !email || !password || !confirmPassword) {
-            alert('Please fill in all fields');
-            return;
-        }
-        if (!email.includes('@')) {
-            alert('Please enter a valid email');
-            setEmail('');
-            return;
-        }
+    const handleRegister = async (e) => {
+      e.preventDefault();
+      if (!name || !surname || !username || !email || !password || !confirmPassword) {
+          alert('Please fill in all fields');
+          return;
+      }
+      if (!email.includes('@')) {
+          alert('Please enter a valid email');
+          setEmail('');
+          return;
+      }
 
-        if (password !== confirmPassword) {
-            alert('Passwords do not match');
-            setPassword('');
-            setConfirmPassword('');
-            return;
+      if (password !== confirmPassword) {
+          alert('Passwords do not match');
+          setPassword('');
+          setConfirmPassword('');
+          return;
+      }
+      try {
+        const response = await fetch('http://localhost:3000/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name,
+            surname,
+            username,
+            email,
+            password,
+          }),
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert(data.message);
+          return;
         }
-        // log full name, surname, username, email, password and confirm password
-        console.log(Name, surname, username, email, password, confirmPassword);
+        // call login function from auth context
+        login(data.newUser.id);
         // navigate to profile page
         navigate('/profile');
+      } catch (error) {
+        console.error(error);
+        alert('server not reachable');
+      }
     }
 
     return (
@@ -43,7 +70,7 @@ export default function Register() {
           <input 
             type="text" 
             placeholder="Name" 
-            value={Name}
+            value={name}
             onChange={(e) => setName(e.target.value)}
           />
           <input 
