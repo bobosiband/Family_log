@@ -22,18 +22,18 @@ app.get('/', (req, res) => {
   res.json({ message: 'Server running' });
 });
 
-// auth routes 
+// auth routes
 
-// register route 
+// register route
 app.post('/auth/register', (req, res) => {
     const { name, surname, username, email, password } = req.body;
     // console.log(username, email, password);
     const result = authRegisterUser(name, surname, username, email, password);
-    console.log(result);
-    if ('error' in result) { 
+    // console.log(result);
+    if ('error' in result) {
         return res.status(400).json(result);
     }
-    return res.status(200).json(result)
+    return res.status(200).json(result);
 });
 
 // login route 
