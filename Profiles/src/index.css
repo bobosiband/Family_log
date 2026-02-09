@@ -9,7 +9,80 @@ body {
   padding: 1rem;
   }
   
-  
+  .profileImage {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover; /* Prevents image stretching */
+    border: 4px solid #f0f0f0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.profileName {
+    font-size: 24px;
+}
+.profileBio {
+    font-size: 16px;
+    color: #666;
+    margin-top: 10px;
+}
+
+.logoutButton {
+    margin-top: 16px;
+    padding: 6px 16px;
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+
+    border-radius: 999px;   /* curved edges */
+    font-size: 14px;
+    cursor: pointer;
+
+    width: fit-content;     /* 👈 key fix */
+    align-self: flex-start; /* prevents stretching */
+    
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.logoutButton:hover {
+    background-color: #ff7875;
+    transform: translateY(-1px);
+}
+
+
+.logoutButton:active {
+    transform: translateY(0);
+}
+
+.profileImageWrapper {
+    display: flex;       /* horizontal layout */
+    align-items: center; /* vertically center image and button */
+    gap: 12px;           /* space between image and button */
+    margin-bottom: 16px;
+}
+
+.editButton {
+    margin-top: 16px;
+    padding: 6px 16px;
+    background-color: #685454;
+    color: white;
+    border: none;
+
+    border-radius: 999px;   /* curved edges */
+    font-size: 14px;
+    cursor: pointer;
+
+    width: fit-content;     /* 👈 key fix */
+    align-self: flex-start; /* prevents stretching */
+    
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+
+.editButton:hover {
+    background-color: rgba(226, 9, 9, 0.85);
+}
+
   nav a {
   color: white;
   margin-right: 1rem;

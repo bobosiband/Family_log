@@ -10,9 +10,9 @@ import { useAuth } from './AuthContext';
  * @returns {React.ReactNode} The protected route or a redirect to the login page.
  */ 
 export default function ProtectedRoute({ children }) {
-  const { userId } = useAuth();
-  console.log('🛡️ ProtectedRoute sees userId:', userId);
-  if (!userId) {
+  const { user } = useAuth();
+  console.log('🛡️ ProtectedRoute sees user:', user);
+  if (!user) {
     return <Navigate to="/login" />;
   }
 

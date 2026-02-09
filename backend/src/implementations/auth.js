@@ -55,13 +55,17 @@ function authRegisterUser(name, surname, username, email, password) {
             message: "user with that email or username already exits",
         };
     }
+    const bio = "";
+    const profilePictureUrl = "/uploads/profilePictures/default.png";
     const newUser = {
         id: ++data.totalusersevercreated,
         name,
         surname,
         username,
         email,
-        password
+        password,
+        bio,
+        profilePictureUrl,
     };
     data.users.push(newUser);
     return {newUser};
@@ -81,6 +85,12 @@ function authLoginUser(username, password) {
 
     return {
         userId: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        surname: user.surname,
+        bio: user.bio,
+        profilePictureUrl: user.profilePictureUrl,
     };
 }
 

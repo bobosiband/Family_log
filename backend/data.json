@@ -1,0 +1,25 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "bongani",
+      "surname": "sibanda",
+      "username": "bongani",
+      "email": "bobosibanda35@gmail.com",
+      "password": "Password12@1",
+      "bio": "",
+      "profilePictureUrl": "/profilePictures/default.png"
+    },
+    {
+      "id": 2,
+      "name": "bongani",
+      "surname": "sibanda",
+      "username": "bobo",
+      "email": "bongani.sibanda942@education.nsw.gov.au",
+      "password": "Password12@1",
+      "bio": "roses are red violets are blue bongani is a black guy who loves coding for free",
+      "profilePictureUrl": "/uploads/profilePictures/default.png"
+    }
+  ],
+  "totalusersevercreated": 2
+}

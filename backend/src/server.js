@@ -2,7 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 
-// import { getData } from './dataStore.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import { getData, loadDataOnStartup, saveDataPersistently } from './dataStore.js';
 import { authRegisterUser, authLoginUser } from './implementations/auth.js';
 
 // set up express app
@@ -13,6 +16,11 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
+// serve static files (for profile pictures)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // config
 const PORT = parseInt(process.env.PORT || 3000, 10);
 const HOST = process.env.IP || '127.0.0.1';
@@ -22,6 +30,8 @@ app.get('/', (req, res) => {
   res.json({ message: 'Server running' });
 });
 
+// load data on startup
+loadDataOnStartup();
 // auth routes
 
 // register route
@@ -33,7 +43,9 @@ app.post('/auth/register', (req, res) => {
     if ('error' in result) {
         return res.status(400).json(result);
     }
+    saveDataPersistently();
     return res.status(200).json(result);
+
 });
 
 // login route 
@@ -44,7 +56,7 @@ app.post('/auth/login', (req, res) => {
   if ('error' in result) {
     return res.status(400).json(result);
   }
-
+  saveDataPersistently();
   return res.status(200).json(result);
 });
 // ====================================================================

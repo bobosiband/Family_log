@@ -54,7 +54,11 @@ export default function Register() {
           return;
         }
         // call login function from auth context
-        login(data.newUser.id);
+        login({
+          userId: data.newUser.id,
+          username: data.newUser.username,
+          email: data.newUser.email
+        }); 
         // navigate to profile page
         navigate('/profile');
       } catch (error) {

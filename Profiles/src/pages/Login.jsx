@@ -40,7 +40,7 @@ export default function Login() {
             return;
           }
           // call login function from auth context
-          login(data.userId);
+          login(data);
            // navigate to profile page
           navigate('/profile');
 
