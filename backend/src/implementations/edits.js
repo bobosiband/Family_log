@@ -1,27 +1,73 @@
 import { getData } from '../dataStore.js';
+import { validateEmail, validateUsername } from '../validation.js';
 
-function editProfileBio(userId, newBio) {
-    newBio = newBio.trim();
-    if (newBio.length > 500) {
-        return {
-            error: "invalid bio",
-            message: "bio cannot be longer than 500 characters"
-        }
+function editProfile(userId, newName, newSurname, newUsername, newBio, newEmail) {
+    newName = newName.trim();
+    newSurname = newSurname.trim();
+    newUsername = newUsername.trim();
+    newEmail = newEmail.trim();
+    if (newName.length === 0) {
+      return {
+        error: "invalid name",
+        message: "name cannot be empty"
+      }
+    }
+    if (newSurname.length === 0) {
+      return {
+        error: "invalid surname",
+        message: "surname cannot be empty"
+      }
+    }
+    if (!validateUsername(newUsername)) {
+      return {
+        error: "invalid username",
+        message: "username must be alphanumeric and between 3 and 30 characters"
+      }
+    }
+    if (!validateEmail(newEmail)) {
+      return {
+        error: "invalid email",
+        message: "email is not in the correct format)"
+      }
     }
     let data = getData();
-    const user = data.users.find((user) => user.id === userId);
+    // console.log({userId, newName, newSurname, newUsername, newBio, newEmail});
+    const user = data.users.find((u) => u.id === userId);
+    
     if (!user) {
         return {
             error: "user not found",
-            message: "no user with that id exists"
-        }
+            message: "no user with that id exists",
+        };
     }
+    const userExists = data.users.find(
+        (user) => (user.email === newEmail || user.username === newUsername) && user.id !== userId
+    );
+    console.log(userExists);
+    if (userExists) {
+        return {
+            error: "invalid credentials",
+            message: "user with that email or username already exits",
+        };
+    }
+
+    user.name = newName;
+    user.surname = newSurname;
+    user.username = newUsername;
     user.bio = newBio;
+    user.email = newEmail;
+    
     return {
-        newBio
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        surname: user.surname,
+        bio: user.bio,
+        profilePictureUrl: user.profilePictureUrl,
     };
 }
 
 export { 
-    editProfileBio,
+    editProfile,
 };

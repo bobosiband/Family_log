@@ -4,9 +4,11 @@ import morgan from 'morgan';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
+import multer from 'multer';
 
 import { getData, loadDataOnStartup, saveDataPersistently } from './dataStore.js';
 import { authRegisterUser, authLoginUser } from './implementations/auth.js';
+import { editProfile } from './implementations/edits.js';
 
 // set up express app
 const app = express();
@@ -15,6 +17,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
+// set up multer for file uploads
+
+const storage = multer.diskStorage({
+  destination: 'src/uploads/profilePictures',
+  filename: (req, file, cb) => {
+    const userId = req.body.userId;
+    const ext = path.extname(file.originalname); // .png, .jpg, etc
+
+    cb(null, `${userId}${ext}`);
+  }
+});
+
+const upload = multer({ storage });
 
 // serve static files (for profile pictures)
 const __filename = fileURLToPath(import.meta.url);
@@ -59,6 +74,41 @@ app.post('/auth/login', (req, res) => {
   saveDataPersistently();
   return res.status(200).json(result);
 });
+
+// edit profile routes 
+app.put('/profile/edit', (req, res) => {
+  const { userId, name, surname, username, bio, email } = req.body;
+  const result = editProfile(userId, name, surname, username, bio, email);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  saveDataPersistently();
+  return res.status(200).json(result);
+});
+
+// profile picture upload route
+app.put(
+  '/profile/picture',
+  upload.single('profileImage'),
+  (req, res) => {
+    const { userId } = req.body;
+    const data = getData();
+
+    const user = data.users.find(u => u.id === Number(userId));
+
+    if (!user) {
+      return res.status(404).json({
+        error: 'USER_NOT_FOUND',
+        message: 'User not found',
+      });
+    }
+
+    user.profilePictureUrl = `/uploads/profilePictures/${req.file.filename}`;
+    saveDataPersistently();
+    return res.status(200).json(user);
+  }
+);
+
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================

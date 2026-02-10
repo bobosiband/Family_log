@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
+import styles from './style/Register.module.css';
 
 export default function Register() {
     // state for full name, email, password and confirm password
@@ -54,11 +55,7 @@ export default function Register() {
           return;
         }
         // call login function from auth context
-        login({
-          userId: data.newUser.id,
-          username: data.newUser.username,
-          email: data.newUser.email
-        }); 
+        login(data.newUser); 
         // navigate to profile page
         navigate('/profile');
       } catch (error) {
@@ -68,9 +65,9 @@ export default function Register() {
     }
 
     return (
-      <main>
-        <h2>Register</h2>
-        <form onSubmit={handleRegister}>
+      <main className={styles.page}>
+        <form onSubmit={handleRegister} className={styles.register}>
+          <h2>Register</h2>
           <input 
             type="text" 
             placeholder="Name" 

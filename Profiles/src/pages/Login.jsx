@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
+import styles from './style/Login.module.css';
 
 /**
  * Login page
@@ -50,9 +51,9 @@ export default function Login() {
         }
     }
     return (
-      <main>
-        <h2>Login</h2>
-        <form onSubmit={handleLogin}>
+      <main className={styles.page}>
+        <form onSubmit={handleLogin} className={styles.login}>
+          <h2>Login</h2>
           <input
            type="username" 
            placeholder="Username" 

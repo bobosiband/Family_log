@@ -70,4 +70,17 @@
 
 .editButton:hover {
     background-color: rgba(226, 9, 9, 0.85);
+    transform: translateY(-1px);
+    /* transform: translateX(100px); */
+    /* transform: rotate(360deg); */
+}
+
+.profileImageUpdateWrapper {
+    display: flex;       /* horizontal layout */
+    align-items: center; /* vertically center image and button */
+    gap: 12px;           /* space between image and button */
+    margin-bottom: 16px;
+    background-color: #9e85df;
+    padding: 8px;
+    border-radius: 13px;
 }

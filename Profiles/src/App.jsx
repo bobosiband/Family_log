@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
+import ProfileEdit from "./pages/ProfileEdit";
 
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -24,7 +25,14 @@ export default function App() {
               <Profile />
             </ProtectedRoute>
           } />
+          <Route 
+            path="/profile/edit" element={
+              <ProtectedRoute>
+                <ProfileEdit />
+              </ProtectedRoute>
+          }/>
       </Routes>
+
     </BrowserRouter>
   );
 }
