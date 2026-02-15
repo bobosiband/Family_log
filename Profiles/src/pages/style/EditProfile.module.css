@@ -1,0 +1,129 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: linear-gradient(135deg, #d7fbe8, #d85858);
+  padding: 2rem;
+}
+
+.container {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card {
+  background: white;
+  padding: 2rem;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 16px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.title {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.inputGroup label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #444;
+}
+
+.inputGroup input,
+.inputGroup textarea {
+  padding: 0.75rem;
+  font-size: 1rem;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  transition: all 0.2s ease;
+}
+
+.inputGroup input:focus,
+.inputGroup textarea:focus {
+  outline: none;
+  border-color: #d85858;
+  box-shadow: 0 0 0 3px rgba(92, 191, 119, 0.15);
+}
+
+.primaryBtn {
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background-color: #d85858;
+  color: white;
+  transition: 0.2s ease;
+}
+
+.primaryBtn:hover {
+  background-color: #d85858;
+  transform: translateY(-2px);
+}
+
+.secondaryBtn {
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  border: 2px solid #d85858;
+  cursor: pointer;
+  background: white;
+  color: #d85858;
+  transition: 0.2s ease;
+}
+
+.secondaryBtn:hover {
+  background: #d85858;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.imagePreview {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+}
+
+.imagePreview img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #d85858;
+}
+
+.placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #eee;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #777;
+}
+
+.fileInput {
+  font-size: 0.9rem;
+}
