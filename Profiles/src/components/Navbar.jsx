@@ -21,7 +21,7 @@ export default function Navbar() {
           className={styles.logo}
           onClick={() => navigate('/')}
         >
-          Family Logs
+          Fam Logs
         </h2>
 
         <div className={styles.links}>

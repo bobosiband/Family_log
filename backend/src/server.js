@@ -109,6 +109,16 @@ app.put(
   }
 );
 
+// password change 
+app.post('profile/password/change', (req, res) => {
+  const password = req.body;
+  const result = editPassword(password);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================

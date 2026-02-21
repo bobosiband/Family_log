@@ -1,5 +1,5 @@
 import { getData } from '../dataStore.js';
-import { validateEmail, validateUsername } from '../validation.js';
+import { validateEmail, validatePasswordStrength, validateUsername } from '../validation.js';
 
 function editProfile(userId, newName, newSurname, newUsername, newBio, newEmail) {
     newName = newName.trim();
@@ -68,6 +68,13 @@ function editProfile(userId, newName, newSurname, newUsername, newBio, newEmail)
     };
 }
 
+// edit password
+function editPassword(password) {
+  password = password.trim();
+  if (!validatePasswordStrength(password)) {
+    return 
+  }
+}
 export { 
     editProfile,
 };

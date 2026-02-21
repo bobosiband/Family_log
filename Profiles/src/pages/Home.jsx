@@ -1,8 +1,17 @@
+import React from "react";
+import styles from "./style/Home.module.css";
+import backgroundImage from "../assets/images/main.PNG";
+
 export default function Home() {
   return (
-   <main>
-    <h1>Welcome home nigga</h1>
-    <p>This should be home page if everything is working</p>
-   </main>
-  )
+    <main 
+      className={styles.page}
+      style={{ backgroundImage: `url(${backgroundImage})` }}
+    >
+      <div className={styles.overlay}>
+        <h1 className={styles.title}>Welcome to Fam Logs</h1>
+        
+      </div>
+    </main>
+  );
 }
