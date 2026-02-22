@@ -50,22 +50,22 @@ function authRegisterUser(name, surname, username, email, password) {
         (user) => user.email === email || user.username === username
     );
     if (userExists) {
-        return {
-            error: "invalid credentials",
-            message: "user with that email or username already exits",
-        };
+      return {
+        error: "invalid credentials",
+        message: "user with that email or username already exits",
+      };
     }
     const bio = "";
     const profilePictureUrl = "/uploads/profilePictures/default.png";
     const newUser = {
-        id: ++data.totalusersevercreated,
-        name,
-        surname,
-        username,
-        email,
-        password,
-        bio,
-        profilePictureUrl,
+      id: ++data.totalusersevercreated,
+      name,
+      surname,
+      username,
+      email,
+      password,
+      bio,
+      profilePictureUrl,
     };
     data.users.push(newUser);
     return {newUser};
@@ -76,21 +76,21 @@ function authLoginUser(username, password) {
     let data = getData();
     const user = data.users.find( (user) => user.username === username && user.password === password);
     if (!user) {
-        return {
-            error: "invalid credentials",
-            message: "incorrrect username or password",
-        }
+      return {
+        error: "invalid credentials",
+        message: "incorrrect username or password",
+      }
     }
     // find user id 
 
     return {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        name: user.name,
-        surname: user.surname,
-        bio: user.bio,
-        profilePictureUrl: user.profilePictureUrl,
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      name: user.name,
+      surname: user.surname,
+      bio: user.bio,
+      profilePictureUrl: user.profilePictureUrl,
     };
 }
 

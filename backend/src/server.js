@@ -8,7 +8,7 @@ import multer from 'multer';
 
 import { getData, loadDataOnStartup, saveDataPersistently } from './dataStore.js';
 import { authRegisterUser, authLoginUser } from './implementations/auth.js';
-import { editProfile } from './implementations/edits.js';
+import { editProfile, editPassword } from './implementations/edits.js';
 
 // set up express app
 const app = express();
@@ -110,12 +110,15 @@ app.put(
 );
 
 // password change 
-app.post('profile/password/change', (req, res) => {
-  const password = req.body;
-  const result = editPassword(password);
+app.post('/profile/password/change/:userid', (req, res) => {
+  const { password } = req.body;
+  const userId = parseInt(req.params.userid);
+  const result = editPassword(userId, password);
+  console.log(result);
   if ('error' in result) {
     return res.status(400).json(result);
   }
+  saveDataPersistently();
   return res.status(200).json(result);
 });
 
