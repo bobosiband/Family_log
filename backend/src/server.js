@@ -111,10 +111,11 @@ app.put(
 
 // password change 
 app.post('/profile/password/change/:userid', (req, res) => {
-  const { password } = req.body;
+  // console.log(req.body);
+  const { newPassword } = req.body;
   const userId = parseInt(req.params.userid);
-  const result = editPassword(userId, password);
-  console.log(result);
+  const result = editPassword(userId, newPassword);
+  // console.log(result);
   if ('error' in result) {
     return res.status(400).json(result);
   }

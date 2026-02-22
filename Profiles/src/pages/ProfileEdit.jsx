@@ -11,6 +11,10 @@ export default function ProfileEdit() {
   const [email, setEmail] = useState(user.email);
   const [bio, setBio] = useState(user.bio || '');
 
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -93,8 +97,56 @@ export default function ProfileEdit() {
     }
   };
 
+  // ---------------------------
+// Update Password
+// ---------------------------
+const handlePasswordChange = async (e) => {
+  e.preventDefault();
+
+  if (!currentPassword || !newPassword || !confirmNewPassword) {
+    alert("Please fill in all fields");
+    return;
+  }
+
+  if (newPassword !== confirmNewPassword) {
+    alert("New passwords do not match");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `http://localhost:3000/profile/password/change/${user.id}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          newPassword,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.message);
+      return;
+    }
+
+    alert("Password updated successfully");
+
+    // Clear fields
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmNewPassword('');
+
+  } catch (err) {
+      console.error(err);
+      alert("Server not reachable");
+    }
+  };
   return (
     <main className={styles.page}>
+      
       <div className={styles.wrapper}>
 
         {/* Floating Avatar */}
@@ -191,7 +243,41 @@ export default function ProfileEdit() {
             {loading ? "Saving..." : "Save Changes"}
           </button>
         </form>
+         {/* Password Change Section */}
+        <form onSubmit={handlePasswordChange} className={styles.card}>
+          <h2>Change Password</h2>
 
+          <div className={styles.inputGroup}>
+            <label>Current Password</label>
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.inputGroup}>
+            <label>New Password</label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.inputGroup}>
+            <label>Confirm New Password</label>
+            <input
+              type="password"
+              value={confirmNewPassword}
+              onChange={(e) => setConfirmNewPassword(e.target.value)}
+            />
+          </div>
+
+          <button type="submit" className={styles.primaryBtn}>
+            Update Password
+          </button>
+        </form>
       </div>
     </main>
   );
