@@ -3,127 +3,127 @@
   display: flex;
   justify-content: center;
   align-items: center;
-
-  background: linear-gradient(135deg, #d7fbe8, #d85858);
-  padding: 2rem;
+  background: linear-gradient(135deg, #caa6a0, #e7c4be);
+  padding: 40px 20px;
 }
 
-.container {
+.wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+}
+
+/* ---------------- AVATAR ---------------- */
+
+.avatarSection {
+  position: absolute;
+  top: -75px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.avatar {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 5px solid white;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  background: #ddd;
   display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
 }
 
-.card {
-  background: white;
-  padding: 2rem;
+.avatar img {
   width: 100%;
-  max-width: 420px;
-  border-radius: 16px;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
+  height: 100%;
+  object-fit: cover;
 }
 
-.title {
+.changePhotoBtn {
+  margin-top: 12px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #444;
+  font-weight: 500;
+}
+
+.uploadBtn {
+  margin-top: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  border-radius: 20px;
+  border: none;
+  background: #333;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.uploadBtn:hover {
+  background: #555;
+}
+
+/* ---------------- CARD ---------------- */
+
+.card {
+  margin-top: 100px;
+  background: white;
+  padding: 100px 40px 40px 40px;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+.card h2 {
   text-align: center;
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: 30px;
 }
 
 .inputGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  margin-bottom: 18px;
 }
 
 .inputGroup label {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #444;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #555;
 }
 
 .inputGroup input,
 .inputGroup textarea {
-  padding: 0.75rem;
-  font-size: 1rem;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  transition: all 0.2s ease;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: none;
+  background: #f2f2f2;
+  font-size: 14px;
+  transition: 0.2s ease;
 }
 
 .inputGroup input:focus,
 .inputGroup textarea:focus {
   outline: none;
-  border-color: #d85858;
-  box-shadow: 0 0 0 3px rgba(92, 191, 119, 0.15);
+  background: #e9e9e9;
 }
 
 .primaryBtn {
-  padding: 0.8rem;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: 10px;
+  margin-top: 15px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 16px;
   border: none;
-  cursor: pointer;
-  background-color: #d85858;
+  font-size: 15px;
+  font-weight: 600;
+  background: linear-gradient(90deg, #be1c3faf, #a85b5b);
   color: white;
+  cursor: pointer;
   transition: 0.2s ease;
 }
 
 .primaryBtn:hover {
-  background-color: #d85858;
   transform: translateY(-2px);
-}
-
-.secondaryBtn {
-  padding: 0.8rem;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: 10px;
-  border: 2px solid #d85858;
-  cursor: pointer;
-  background: white;
-  color: #d85858;
-  transition: 0.2s ease;
-}
-
-.secondaryBtn:hover {
-  background: #d85858;
-  color: white;
-  transform: translateY(-2px);
-}
-
-.imagePreview {
-  width: 120px;
-  height: 120px;
-  margin: 0 auto;
-}
-
-.imagePreview img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #d85858;
-}
-
-.placeholder {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: #eee;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 0.8rem;
-  color: #777;
-}
-
-.fileInput {
-  font-size: 0.9rem;
+  box-shadow: 0 8px 20px rgba(59, 110, 220, 0.4);
 }

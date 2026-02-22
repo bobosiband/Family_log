@@ -1,36 +1,129 @@
-.page {
-  position: relative;
-  height: 100vh;
-  width: 100%;
-  overflow: hidden;
+.home {
+  font-family: 'Segoe UI', sans-serif;
+  color: #2d3436;
+}
 
+/* HERO */
+.hero {
+  height: 85vh;
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
-
-  animation: zoomBg 30s ease-in-out infinite alternate;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Smooth cinematic zoom */
-@keyframes zoomBg {
-  from {
-    transform: scale(1);
-  }
-  to {
-    transform: scale(1.1);
-  }
+.heroOverlay {
+  background: rgba(0, 0, 0, 0.55);
+  color: white;
+  padding: 3rem;
+  text-align: center;
+  border-radius: 12px;
+  max-width: 600px;
 }
 
-/* Dark gradient overlay */
-.overlay {
-  position: absolute;
-  inset: 0;
+.heroOverlay h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
 
-  background: linear-gradient(
-    135deg,
-    rgba(15, 15, 40, 0.6),
-    rgba(0, 0, 0, 0.7)
-  );
+.heroOverlay p {
+  margin-bottom: 2rem;
+}
 
-  backdrop-filter: blur(2px);
+/* BUTTONS */
+.primaryButton,
+.secondaryButton {
+  display: inline-block;
+  padding: 0.9rem 1.6rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.primaryButton {
+  background-color: #0984e3;
+  color: white;
+}
+
+.primaryButton:hover {
+  background-color: #0652dd;
+}
+
+.secondaryButton {
+  background-color: white;
+  color: #0984e3;
+}
+
+.secondaryButton:hover {
+  background-color: #dfe6e9;
+}
+
+/* FEATURES */
+.features {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  padding: 4rem 2rem;
+  flex-wrap: wrap;
+  background: #f5f6fa;
+}
+
+.featureCard {
+  width: 280px;
+  text-align: center;
+}
+
+.featureCard img {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.featureCard img:hover {
+  transform: scale(1.05);
+}
+
+/* GALLERY */
+.gallerySection {
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.gallerySection h2 {
+  margin-bottom: 2rem;
+}
+
+.imageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.imageGrid img {
+  width: 100%;
+  border-radius: 12px;
+  transition: transform 0.3s ease;
+}
+
+.imageGrid img:hover {
+  transform: scale(1.05);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .heroOverlay h1 {
+    font-size: 2rem;
+  }
+
+  .features {
+    padding: 2rem 1rem;
+  }
+
+  .gallerySection {
+    padding: 2rem 1rem;
+  }
 }
