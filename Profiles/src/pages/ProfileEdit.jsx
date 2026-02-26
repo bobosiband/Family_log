@@ -34,7 +34,7 @@ export default function ProfileEdit() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/profile/edit', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/profile/edit`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -76,7 +76,7 @@ export default function ProfileEdit() {
     formData.append('profileImage', file);
 
     try {
-      const response = await fetch('http://localhost:3000/profile/picture', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/profile/picture`, {
         method: 'PUT',
         body: formData,
       });
@@ -115,7 +115,7 @@ const handlePasswordChange = async (e) => {
 
   try {
     const response = await fetch(
-      `http://localhost:3000/profile/password/change/${user.id}`,
+      `${import.meta.env.VITE_API_URL}/profile/password/change/${user.id}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -157,7 +157,7 @@ const handlePasswordChange = async (e) => {
               <img src={preview} alt="preview" />
             ) : user.profilePictureUrl ? (
               <img
-                src={`http://localhost:3000${user.profilePictureUrl}`}
+                src={`${import.meta.env.VITE_API_URL}${user.profilePictureUrl}`}
                 alt="profile"
               />
             ) : (
