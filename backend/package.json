@@ -48,7 +48,7 @@
     "eslint-plugin-jest": "29.0.1",
     "globals": "16.4.0",
     "jest": "^29.7.0",
-    "nodemon": "^3.1.11",
+    "nodemon": "^3.1.14",
     "nyc": "17.1.0",
     "swagger-ui-express": "5.0.1",
     "sync-request": "^6.1.0",
@@ -59,4 +59,3 @@
     "yaml": "2.4.5"
   }
 }
-

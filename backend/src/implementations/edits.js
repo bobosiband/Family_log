@@ -69,29 +69,45 @@ function editProfile(userId, newName, newSurname, newUsername, newBio, newEmail)
 }
 
 // edit password
-function editPassword(userId, password) {
-  if (!validatePasswordStrength(password)) {
-    return {
-      error: "weak password",
-      message: "password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and two special characters"
-    };
-  }
+function editPassword(userId, newPassword, currentPassword) {
+  console.log(newPassword, currentPassword, userId);
   let data = getData();
   const user = data.users.find((u) => u.id === userId);
+
   if (!user) {
     return {
       error: "user not found",
       message: "no user with that id exists",
     };
   }
+
+  if (currentPassword !== user.password) {
+    return {
+      error: "wrong password",
+      message: "incorrrect password",
+    };
+  }
   // 
-  if (password === user.password) {
+  if (user.passwordHistory?.includes(newPassword)) {
+    return {
+      error: "used password",
+      message: "use a different password from before",
+    };
+  }
+  if (newPassword === user.password) {
     return {
       error: "same password",
       message: "you need to provide a different password from your current password",
     };
   }
-  user.password = password;
+  if (!validatePasswordStrength(newPassword)) {
+    return {
+      error: "weak password",
+      message: "password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and two special characters"
+    };
+  }
+  user.password = newPassword;
+  user.passwordHistory.push(newPassword);
   return {
     id: user.id,
     username: user.username,

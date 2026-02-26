@@ -37,7 +37,7 @@ const __dirname = path.dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // config
-const PORT = parseInt(process.env.PORT || 3000, 10);
+const PORT = process.env.PORT || 3000;
 const HOST = process.env.IP || '127.0.0.1';
 
 // routes
@@ -112,9 +112,9 @@ app.put(
 // password change 
 app.post('/profile/password/change/:userid', (req, res) => {
   // console.log(req.body);
-  const { newPassword } = req.body;
+  const { newPassword, currentPassword } = req.body;
   const userId = parseInt(req.params.userid);
-  const result = editPassword(userId, newPassword);
+  const result = editPassword(userId, newPassword, currentPassword);
   // console.log(result);
   if ('error' in result) {
     return res.status(400).json(result);
@@ -155,8 +155,8 @@ app.use((req, res) => {
 });
 
 // start server
-const server = app.listen(PORT, HOST, () => {
-  console.log(`⚡️ Server started on port ${PORT} at ${HOST}`);
+const server = app.listen(PORT, () => {
+  console.log(`⚡️ Server started on port ${PORT}`);
 });
 
 // graceful shutdown

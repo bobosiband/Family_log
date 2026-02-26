@@ -6,40 +6,15 @@
       "surname": "sibanda",
       "username": "KillMasterB",
       "email": "bobosibanda35@gmail.com",
-      "password": "Bongani12@1",
+      "password": "PAssword12@1",
       "bio": "all the good children touch good carbons",
-      "profilePictureUrl": "/uploads/profilePictures/1.JPG"
-    },
-    {
-      "id": 2,
-      "name": "butho",
-      "surname": "sibanda",
-      "username": "love",
-      "email": "bongani.sibanda942@education.nsw.gov.au",
-      "password": "Password12@1",
-      "bio": "roses are red violets are blue bongani is a black guy who loves coding for free",
-      "profilePictureUrl": "/uploads/profilePictures/default.png"
-    },
-    {
-      "id": 3,
-      "name": "bekithemba",
-      "surname": "sibanda",
-      "username": "beki",
-      "email": "beki@gmail.com",
-      "password": "Password12@1",
-      "bio": "",
-      "profilePictureUrl": "/uploads/profilePictures/default.png"
-    },
-    {
-      "id": 4,
-      "name": "ndaka",
-      "surname": "sibanda",
-      "username": "ndaka",
-      "email": "ndaka@gmail.com",
-      "password": "Password12@1",
-      "bio": "",
-      "profilePictureUrl": "/uploads/profilePictures/4.jpeg"
+      "profilePictureUrl": "/uploads/profilePictures/1.JPG",
+      "passwordHistory": [
+        "Password12@1",
+        "BSpassword12@1",
+        "PAssword12@1"
+      ]
     }
   ],
-  "totalusersevercreated": 4
+  "totalusersevercreated": 1
 }

@@ -57,6 +57,8 @@ function authRegisterUser(name, surname, username, email, password) {
     }
     const bio = "";
     const profilePictureUrl = "/uploads/profilePictures/default.png";
+    const passwordHistory = [];
+    passwordHistory.push(password);
     const newUser = {
       id: ++data.totalusersevercreated,
       name,
@@ -66,6 +68,7 @@ function authRegisterUser(name, surname, username, email, password) {
       password,
       bio,
       profilePictureUrl,
+      passwordHistory,
     };
     data.users.push(newUser);
     return {newUser};
