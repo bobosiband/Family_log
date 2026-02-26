@@ -25,7 +25,7 @@ export default function Home() {
       >
         <div className={styles.heroOverlay}>
           <h1>Welcome to Family Log</h1>
-          <p>Connect. Discover. Build Meaningful Relationships.</p>
+          <p>GET TO KNOW BONGANI AND EVERY ONE CONNECTED TO HIM</p>
 
           {/* Only show when logged in */}
           {user && (
@@ -47,20 +47,20 @@ export default function Home() {
       <section className={styles.features}>
         <div className={styles.featureCard}>
           <img src={MainPics1} alt="Discover" />
-          <h3>Discover</h3>
-          <p>Find people who matter and build lasting connections.</p>
+          <h3>Bongani</h3>
+          <p>All good children touch good carbons</p>
         </div>
 
         <div className={styles.featureCard}>
           <img src={MainPics2} alt="Share" />
-          <h3>Share</h3>
-          <p>Share your journey and tell your story.</p>
+          <h3>Sibanda</h3>
+          <p>Bongani Sibanda is a UNSW student facing academic challenges, with low motivation and attending only about 50% of classes each week.</p>
         </div>
 
         <div className={styles.featureCard}>
           <img src={MainPics3} alt="Grow" />
-          <h3>Grow</h3>
-          <p>Strengthen relationships and grow together.</p>
+          <h3>Ashkryne the panganoi at a sbejeje level</h3>
+          <p>“If you get it, you get it; if not, forget about it.</p>
         </div>
       </section>
 
