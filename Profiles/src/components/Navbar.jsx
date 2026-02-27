@@ -50,7 +50,7 @@ export default function Navbar() {
               >
                 {user.profilePictureUrl ? (
                   <img
-                    src={`${import.meta.env.VITE_API_URL}${user.profilePictureUrl}`}
+                    src={user.profilePictureUrl}
                     alt="avatar"
                     className={styles.avatar}
                   />

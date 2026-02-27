@@ -27,7 +27,7 @@ export default function Profile() {
           <div className={styles.profileImageWrapper}>
             {user.profilePictureUrl ? (
               <img
-                src={`${import.meta.env.VITE_API_URL}${user.profilePictureUrl}`}
+                src={user.profilePictureUrl}
                 alt="Profile"
                 className={styles.profileImage}
               />

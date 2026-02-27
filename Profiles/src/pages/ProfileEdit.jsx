@@ -157,7 +157,7 @@ const handlePasswordChange = async (e) => {
               <img src={preview} alt="preview" />
             ) : user.profilePictureUrl ? (
               <img
-                src={`${import.meta.env.VITE_API_URL}${user.profilePictureUrl}`}
+                src={user.profilePictureUrl}
                 alt="profile"
               />
             ) : (
