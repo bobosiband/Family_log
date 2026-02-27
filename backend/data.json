@@ -1,20 +1,4 @@
 {
-  "users": [
-    {
-      "id": 1,
-      "name": "bongani",
-      "surname": "sibanda",
-      "username": "KillMasterB",
-      "email": "bobosibanda35@gmail.com",
-      "password": "PAssword12@1",
-      "bio": "all the good children touch good carbons",
-      "profilePictureUrl": "/uploads/profilePictures/1.JPG",
-      "passwordHistory": [
-        "Password12@1",
-        "BSpassword12@1",
-        "PAssword12@1"
-      ]
-    }
-  ],
-  "totalusersevercreated": 1
+  "users": [],
+  "totalusersevercreated": 0
 }

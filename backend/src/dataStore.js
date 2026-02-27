@@ -1,9 +1,44 @@
 import * as fs from 'fs';
+import { MongoClient } from "mongodb";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const client = new MongoClient(process.env.MONGO_URI);
+const dbName = "familylog";
+const collectionName = "datastore";
+
 
 let data = {
     users: [],
     totalusersevercreated: 0
 };
+
+async function initData() {
+  await client.connect();
+  const db = client.db(dbName);
+  const collection = db.collection(collectionName);
+
+  const saved = await collection.findOne({ name: "appdata" });
+
+  if (saved) {
+    data = saved.data;
+    console.log("✅ Data loaded from MongoDB");
+  } else {
+    await collection.insertOne({ name: "appdata", data });
+    console.log("🆕 Initialized new datastore");
+  }
+}
+
+async function persistData() {
+  const db = client.db(dbName);
+  const collection = db.collection(collectionName);
+
+  await collection.updateOne(
+    { name: "appdata" },
+    { $set: { data } }
+  );
+}
 
 /**
  * 
@@ -37,7 +72,9 @@ function saveDataPersistently() {
 }
 
 export {
-    getData,
-    loadDataOnStartup,
-    saveDataPersistently,
+  getData,
+  loadDataOnStartup,
+  saveDataPersistently,
+  initData,
+  persistData
 }

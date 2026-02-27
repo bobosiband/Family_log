@@ -10,6 +10,8 @@ import { getData, loadDataOnStartup, saveDataPersistently } from './dataStore.js
 import { authRegisterUser, authLoginUser } from './implementations/auth.js';
 import { editProfile, editPassword } from './implementations/edits.js';
 
+import { initData, persistData } from './dataStore.js';
+
 // set up express app
 const app = express();
 
@@ -46,11 +48,11 @@ app.get('/', (req, res) => {
 });
 
 // load data on startup
-loadDataOnStartup();
+// loadDataOnStartup();
 // auth routes
 
 // register route
-app.post('/auth/register', (req, res) => {
+app.post('/auth/register', async (req, res) => {
     const { name, surname, username, email, password } = req.body;
     // console.log(username, email, password);
     const result = authRegisterUser(name, surname, username, email, password);
@@ -58,30 +60,33 @@ app.post('/auth/register', (req, res) => {
     if ('error' in result) {
         return res.status(400).json(result);
     }
+    await persistData();
     saveDataPersistently();
     return res.status(200).json(result);
 
 });
 
 // login route 
-app.post('/auth/login', (req, res) => {
+app.post('/auth/login', async (req, res) => {
   const { username, password } = req.body;
   const result = authLoginUser(username, password);
 
   if ('error' in result) {
     return res.status(400).json(result);
   }
+  await persistData();
   saveDataPersistently();
   return res.status(200).json(result);
 });
 
 // edit profile routes 
-app.put('/profile/edit', (req, res) => {
+app.put('/profile/edit', async (req, res) => {
   const { userId, name, surname, username, bio, email } = req.body;
   const result = editProfile(userId, name, surname, username, bio, email);
   if ('error' in result) {
     return res.status(400).json(result);
   }
+  await persistData();
   saveDataPersistently();
   return res.status(200).json(result);
 });
@@ -90,7 +95,7 @@ app.put('/profile/edit', (req, res) => {
 app.put(
   '/profile/picture',
   upload.single('profileImage'),
-  (req, res) => {
+  async (req, res) => {
     const { userId } = req.body;
     const data = getData();
 
@@ -104,13 +109,14 @@ app.put(
     }
 
     user.profilePictureUrl = `/uploads/profilePictures/${req.file.filename}`;
+    await persistData();
     saveDataPersistently();
     return res.status(200).json(user);
   }
 );
 
 // password change 
-app.post('/profile/password/change/:userid', (req, res) => {
+app.post('/profile/password/change/:userid', async (req, res) => {
   // console.log(req.body);
   const { newPassword, currentPassword } = req.body;
   const userId = parseInt(req.params.userid);
@@ -119,6 +125,7 @@ app.post('/profile/password/change/:userid', (req, res) => {
   if ('error' in result) {
     return res.status(400).json(result);
   }
+  await persistData();
   saveDataPersistently();
   return res.status(200).json(result);
 });
@@ -155,9 +162,16 @@ app.use((req, res) => {
 });
 
 // start server
-const server = app.listen(PORT, () => {
-  console.log(`⚡️ Server started on port ${PORT}`);
-});
+
+const startServer = async () => {
+  await initData();
+
+  app.listen(PORT, HOST, () => {
+    console.log(`⚡️ Server started on port ${PORT}`);
+  });
+};
+
+startServer();
 
 // graceful shutdown
 process.on('SIGINT', () => {
