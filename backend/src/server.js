@@ -155,9 +155,7 @@ app.post('/profile/picture', upload.single('profileImage'), async (req, res) => 
 
     await persistData();
 
-    return res.status(200).json({
-      user
-    });
+    return res.status(200).json(user);
 
   } catch (err) {
     return res.status(500).json({ 
