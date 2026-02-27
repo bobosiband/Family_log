@@ -11,6 +11,8 @@ import { authRegisterUser, authLoginUser } from './implementations/auth.js';
 import { editProfile, editPassword } from './implementations/edits.js';
 
 import { initData, persistData } from './dataStore.js';
+import upload from "./middleware/upload.js";
+import cloudinary from "./config/cloudinary.js";
 
 // set up express app
 const app = express();
@@ -21,17 +23,17 @@ app.use(express.json());
 app.use(morgan('dev'));
 // set up multer for file uploads
 
-const storage = multer.diskStorage({
-  destination: 'src/uploads/profilePictures',
-  filename: (req, file, cb) => {
-    const userId = req.body.userId;
-    const ext = path.extname(file.originalname); // .png, .jpg, etc
+// const storage = multer.diskStorage({
+//   destination: 'src/uploads/profilePictures',
+//   filename: (req, file, cb) => {
+//     const userId = req.body.userId;
+//     const ext = path.extname(file.originalname); // .png, .jpg, etc
 
-    cb(null, `${userId}${ext}`);
-  }
-});
+//     cb(null, `${userId}${ext}`);
+//   }
+// });
 
-const upload = multer({ storage });
+// const upload = multer({ storage });
 
 // serve static files (for profile pictures)
 const __filename = fileURLToPath(import.meta.url);
@@ -92,14 +94,36 @@ app.put('/profile/edit', async (req, res) => {
 });
 
 // profile picture upload route
-app.put(
-  '/profile/picture',
-  upload.single('profileImage'),
-  async (req, res) => {
+
+// app.put(
+//   '/profile/picture',
+//   upload.single('profileImage'),
+//   async (req, res) => {
+//     const { userId } = req.body;
+//     const data = getData();
+
+//     const user = data.users.find(u => u.id === Number(userId));
+
+//     if (!user) {
+//       return res.status(404).json({
+//         error: 'USER_NOT_FOUND',
+//         message: 'User not found',
+//       });
+//     }
+
+//     user.profilePictureUrl = `/uploads/profilePictures/${req.file.filename}`;
+//     await persistData();
+//     saveDataPersistently();
+//     return res.status(200).json(user);
+//   }
+// );
+
+app.post('/profile/picture', upload.single('profileImage'), async (req, res) => {
+  try {
     const { userId } = req.body;
     const data = getData();
 
-    const user = data.users.find(u => u.id === Number(userId));
+    const user = data.users.find(u => u.id === userId);
 
     if (!user) {
       return res.status(404).json({
@@ -108,12 +132,40 @@ app.put(
       });
     }
 
-    user.profilePictureUrl = `/uploads/profilePictures/${req.file.filename}`;
+    if (!req.file) {
+      return res.status(400).json({ 
+        error: "No image uploaded",
+        message: "Please upload an image file in the 'image' field" 
+      });
+    }
+
+    // Upload buffer to Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        { folder: "family_log_profiles" },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      ).end(req.file.buffer);
+    });
+
+    // Save image URL in user object
+    user.profilePictureUrl = result.secure_url;
+
     await persistData();
-    saveDataPersistently();
-    return res.status(200).json(user);
+
+    return res.status(200).json({
+      user
+    });
+
+  } catch (err) {
+    return res.status(500).json({ 
+      error: "Image upload failed",
+      message: err.message
+    });
   }
-);
+});
 
 // password change 
 app.post('/profile/password/change/:userid', async (req, res) => {
