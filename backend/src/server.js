@@ -123,7 +123,7 @@ app.post('/profile/picture', upload.single('profileImage'), async (req, res) => 
     const { userId } = req.body;
     const data = getData();
 
-    const user = data.users.find(u => u.id === userId);
+    const user = data.users.find(u => u.id === Number(userId));
 
     if (!user) {
       return res.status(404).json({
@@ -133,9 +133,9 @@ app.post('/profile/picture', upload.single('profileImage'), async (req, res) => 
     }
 
     if (!req.file) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "No image uploaded",
-        message: "Please upload an image file in the 'image' field" 
+        message: "Please upload an image file in the 'image' field"
       });
     }
 
