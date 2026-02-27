@@ -17,137 +17,107 @@ export default function ProfileEdit() {
 
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [loading, setLoading] = useState(false);
 
-  // Cleanup preview memory
+  const [loading, setLoading] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
   useEffect(() => {
     return () => {
       if (preview) URL.revokeObjectURL(preview);
     };
   }, [preview]);
 
-  // ---------------------------
-  // Update Profile Details
-  // ---------------------------
   const handleEdit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/profile/edit`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id,
-          name,
-          surname,
-          username,
-          email,
-          bio,
-        }),
+        body: JSON.stringify({ userId: user.id, name, surname, username, email, bio }),
       });
-
       const data = await response.json();
-
       if (!response.ok) {
         alert(data.message);
-        setLoading(false);
         return;
       }
-
-      login(data); // update context
+      login(data);
       alert("Profile updated successfully");
     } catch (err) {
       console.error(err);
       alert("Server not reachable");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
-  // ---------------------------
-  // Update Profile Picture
-  // ---------------------------
   const handleImageUpload = async () => {
     if (!file) return;
-
+    setImageLoading(true);
     const formData = new FormData();
     formData.append('userId', user.id);
     formData.append('profileImage', file);
-
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/profile/picture`, {
         method: 'POST',
         body: formData,
       });
-
       const data = await response.json();
-
       if (!response.ok) {
         alert(data.message);
         return;
       }
-
-      login(data);       // update context
+      login(data);
       setFile(null);
       setPreview(null);
     } catch (err) {
       console.error(err);
       alert("Image upload failed");
+    } finally {
+      setImageLoading(false);
     }
   };
 
-  // ---------------------------
-// Update Password
-// ---------------------------
-const handlePasswordChange = async (e) => {
-  e.preventDefault();
-
-  if (!currentPassword || !newPassword || !confirmNewPassword) {
-    alert("Please fill in all fields");
-    return;
-  }
-
-  if (newPassword !== confirmNewPassword) {
-    alert("New passwords do not match");
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/profile/password/change/${user.id}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          newPassword,
-          currentPassword,
-        }),
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      alert(data.message);
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      alert("Please fill in all fields");
       return;
     }
-
-    alert("Password updated successfully");
-
-    // Clear fields
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmNewPassword('');
-
-  } catch (err) {
+    if (newPassword !== confirmNewPassword) {
+      alert("New passwords do not match");
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/profile/password/change/${user.id}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ newPassword, currentPassword }),
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        alert(data.message);
+        return;
+      }
+      alert("Password updated successfully");
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+    } catch (err) {
       console.error(err);
       alert("Server not reachable");
+    } finally {
+      setPasswordLoading(false);
     }
   };
+
   return (
     <main className={styles.page}>
-      
       <div className={styles.wrapper}>
 
         {/* Floating Avatar */}
@@ -156,10 +126,7 @@ const handlePasswordChange = async (e) => {
             {preview ? (
               <img src={preview} alt="preview" />
             ) : user.profilePictureUrl ? (
-              <img
-                src={user.profilePictureUrl}
-                alt="profile"
-              />
+              <img src={user.profilePictureUrl} alt="profile" />
             ) : (
               <span>{user.username[0].toUpperCase()}</span>
             )}
@@ -174,7 +141,6 @@ const handlePasswordChange = async (e) => {
               onChange={(e) => {
                 const selectedFile = e.target.files[0];
                 if (!selectedFile) return;
-
                 setFile(selectedFile);
                 setPreview(URL.createObjectURL(selectedFile));
               }}
@@ -185,8 +151,9 @@ const handlePasswordChange = async (e) => {
             <button
               className={styles.uploadBtn}
               onClick={handleImageUpload}
+              disabled={imageLoading}
             >
-              Save Image
+              {imageLoading ? 'Uploading...' : 'Save Image'}
             </button>
           )}
         </div>
@@ -197,54 +164,35 @@ const handlePasswordChange = async (e) => {
 
           <div className={styles.inputGroup}>
             <label>First Name</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+            <input value={name} onChange={(e) => setName(e.target.value)} disabled={loading} />
           </div>
 
           <div className={styles.inputGroup}>
             <label>Last Name</label>
-            <input
-              value={surname}
-              onChange={(e) => setSurname(e.target.value)}
-            />
+            <input value={surname} onChange={(e) => setSurname(e.target.value)} disabled={loading} />
           </div>
 
           <div className={styles.inputGroup}>
             <label>Username</label>
-            <input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
+            <input value={username} onChange={(e) => setUsername(e.target.value)} disabled={loading} />
           </div>
 
           <div className={styles.inputGroup}>
             <label>Email</label>
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <input value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} />
           </div>
 
           <div className={styles.inputGroup}>
             <label>Bio</label>
-            <textarea
-              rows="3"
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-            />
+            <textarea rows="3" value={bio} onChange={(e) => setBio(e.target.value)} disabled={loading} />
           </div>
 
-          <button
-            type="submit"
-            className={styles.primaryBtn}
-            disabled={loading}
-          >
-            {loading ? "Saving..." : "Save Changes"}
+          <button type="submit" className={styles.primaryBtn} disabled={loading}>
+            {loading ? 'Saving...' : 'Save Changes'}
           </button>
         </form>
-         {/* Password Change Section */}
+
+        {/* Password Change Section */}
         <form onSubmit={handlePasswordChange} className={styles.card}>
           <h2>Change Password</h2>
 
@@ -254,6 +202,7 @@ const handlePasswordChange = async (e) => {
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
+              disabled={passwordLoading}
             />
           </div>
 
@@ -263,6 +212,7 @@ const handlePasswordChange = async (e) => {
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
+              disabled={passwordLoading}
             />
           </div>
 
@@ -272,13 +222,15 @@ const handlePasswordChange = async (e) => {
               type="password"
               value={confirmNewPassword}
               onChange={(e) => setConfirmNewPassword(e.target.value)}
+              disabled={passwordLoading}
             />
           </div>
 
-          <button type="submit" className={styles.primaryBtn}>
-            Update Password
+          <button type="submit" className={styles.primaryBtn} disabled={passwordLoading}>
+            {passwordLoading ? 'Updating...' : 'Update Password'}
           </button>
         </form>
+
       </div>
     </main>
   );
