@@ -77,7 +77,7 @@ export default function ProfileEdit() {
 
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/profile/picture`, {
-        method: 'PUT',
+        method: 'POST',
         body: formData,
       });
 
