@@ -166,7 +166,7 @@ app.use((req, res) => {
 const startServer = async () => {
   await initData();
 
-  app.listen(PORT, HOST, () => {
+  app.listen(PORT, () => {
     console.log(`⚡️ Server started on port ${PORT}`);
   });
 };
