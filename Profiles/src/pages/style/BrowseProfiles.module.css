@@ -1,100 +1,218 @@
 /* BrowseProfiles.module.css */
 
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Instrument+Serif:ital@0;1&display=swap');
+.container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: #f4f6f8;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
 
-.main {
-  min-height: 100vh;
+/* Navbar */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background: #4f46e5;
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  z-index: 200;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Search Bar */
+.searchBar {
+  position: fixed;
+  top: 60px; /* below navbar */
+  left: 0;
+  width: 100%;
+  padding: 10px 20px;
+  background: white;
+  z-index: 150;
+  display: flex;
+  justify-content: center;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+}
+
+.searchBar input {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px 16px;
+  border-radius: 25px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  outline: none;
+}
+
+.searchBar input:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+/* Profiles Area */
+.profilesArea {
+  position: absolute;
+  top: 100px; /* offset for navbar + search bar */
+  left: 0;
+  width: 100%;
+  height: calc(100% - 100px);
+}
+
+/* Profile Card */
+.profileCard {
+  position: absolute;
+  width: 120px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.profileCard img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.profileCard p {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #333;
+}
+
+/* Hover Effect */
+.profileCard:hover {
+  transform: scale(1.08);
+}
+
+/* Overlay Panel */
+.profileOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: white;
+  transform: translateX(100%);
+  transition: transform 0.4s ease;
+  z-index: 300;
+  overflow-y: auto;
+}
+
+.profileOverlay.active {
+  transform: translateX(0);
+}
+
+/* Overlay Content */
+.overlayContent {
+  padding: 30px;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Back Button */
+.backButton {
+  font-size: 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  margin-bottom: 20px;
+  color: #4f46e5;
+  font-weight: 500;
+  align-self: flex-start;
+}
+
+/* Profile Header */
+.profileHeader {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.profileHeader img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.profileHeader h2 {
+  margin-top: 16px;
+  font-weight: 600;
+}
+
+/* Under Construction */
+.underConstruction {
+  text-align: center;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.constructionIcon {
+  font-size: 64px;
+  animation: bounce 1.5s infinite;
+}
+
+.underConstruction h3 {
+  margin-top: 20px;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.underConstruction p {
+  margin-top: 10px;
+  color: #666;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Placeholder Box */
+.placeholderBox {
+  margin: 40px auto 0;
+  width: 160px;
+  height: 160px;
+  border-radius: 20px;
+  background: #fff4c2;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f5f0e8;
-  background-image:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 40px,
-      rgba(0,0,0,0.03) 40px,
-      rgba(0,0,0,0.03) 41px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 40px,
-      rgba(0,0,0,0.03) 40px,
-      rgba(0,0,0,0.03) 41px
-    );
-  font-family: 'Syne', sans-serif;
-  padding: 2rem;
+  animation: pulse 2s infinite;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
 }
 
-.card {
-  background: #fff;
-  border: 2px solid #1a1a1a;
-  border-radius: 2px;
-  max-width: 560px;
-  width: 100%;
-  padding: 3rem 3.5rem;
-  text-align: center;
-  box-shadow: 8px 8px 0px #1a1a1a;
-  animation: slideIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+.tool {
+  font-size: 48px;
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
-.card h1 {
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: clamp(1.4rem, 4vw, 2rem);
-  color: #1a1a1a;
-  letter-spacing: -0.03em;
-  margin: 0 0 0.75rem 0;
-  line-height: 1.2;
-}
-
-.card p {
-  font-family: 'Instrument Serif', serif;
-  font-style: italic;
-  font-size: 1.1rem;
-  color: #666;
-  margin: 0 0 2rem 0;
-}
-
-.card img {
-  width: 100%;
-  max-width: 380px;
-  height: 220px;
-  object-fit: cover;
-  border: 2px solid #1a1a1a;
-  border-radius: 2px;
-  display: block;
-  margin: 0 auto;
-  filter: grayscale(20%);
-  transition: filter 0.3s ease, transform 0.3s ease;
-}
-
-.card img:hover {
-  filter: grayscale(0%);
-  transform: scale(1.01);
-}
-
-.badge {
+.homeLink {
   display: inline-block;
-  background: #1a1a1a;
-  color: #f5f0e8;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 0.3rem 0.75rem;
-  border-radius: 2px;
-  margin-bottom: 1.5rem;
+  margin-bottom: 20px;
+  color: #4f46e5;
+  font-weight: 500;
+  text-decoration: none;
+  font-size: 18px;
+}
+
+.homeLink:hover {
+  text-decoration: underline;
+}
+/* Animations */
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }

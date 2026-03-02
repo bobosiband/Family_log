@@ -1,0 +1,100 @@
+/* BrowseProfiles.module.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Instrument+Serif:ital@0;1&display=swap');
+
+.main {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f0e8;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 40px,
+      rgba(0,0,0,0.03) 40px,
+      rgba(0,0,0,0.03) 41px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 40px,
+      rgba(0,0,0,0.03) 40px,
+      rgba(0,0,0,0.03) 41px
+    );
+  font-family: 'Syne', sans-serif;
+  padding: 2rem;
+}
+
+.card {
+  background: #fff;
+  border: 2px solid #1a1a1a;
+  border-radius: 2px;
+  max-width: 560px;
+  width: 100%;
+  padding: 3rem 3.5rem;
+  text-align: center;
+  box-shadow: 8px 8px 0px #1a1a1a;
+  animation: slideIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card h1 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  color: #1a1a1a;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.2;
+}
+
+.card p {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 1.1rem;
+  color: #666;
+  margin: 0 0 2rem 0;
+}
+
+.card img {
+  width: 100%;
+  max-width: 380px;
+  height: 220px;
+  object-fit: cover;
+  border: 2px solid #1a1a1a;
+  border-radius: 2px;
+  display: block;
+  margin: 0 auto;
+  filter: grayscale(20%);
+  transition: filter 0.3s ease, transform 0.3s ease;
+}
+
+.card img:hover {
+  filter: grayscale(0%);
+  transform: scale(1.01);
+}
+
+.badge {
+  display: inline-block;
+  background: #1a1a1a;
+  color: #f5f0e8;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.75rem;
+  border-radius: 2px;
+  margin-bottom: 1.5rem;
+}
