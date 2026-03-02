@@ -2,14 +2,18 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 
+// file uploads 
 import path from 'path';
 import { fileURLToPath } from 'url';
 import multer from 'multer';
 
+// all the logic
 import { getData, loadDataOnStartup, saveDataPersistently } from './dataStore.js';
 import { authRegisterUser, authLoginUser } from './implementations/auth.js';
 import { editProfile, editPassword } from './implementations/edits.js';
+import { getUserInfo } from './implementations/userInfo.js';
 
+// cloud and data handling 
 import { initData, persistData } from './dataStore.js';
 import upload from "./middleware/upload.js";
 import cloudinary from "./config/cloudinary.js";
@@ -178,6 +182,19 @@ app.post('/profile/password/change/:userid', async (req, res) => {
   await persistData();
   saveDataPersistently();
   return res.status(200).json(result);
+});
+
+// get all user data for viewing profiles
+app.get('/users/all', (req, res) => {
+  try {
+    const data = getUserInfo();
+    return res.status(200).json(data);
+  } catch (err) {    
+    return res.status(500).json({
+      error: 'DATA_RETRIEVAL_ERROR',
+      message: 'An error occurred while retrieving user data',
+    });
+  }
 });
 
 // ====================================================================

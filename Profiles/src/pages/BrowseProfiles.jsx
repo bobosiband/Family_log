@@ -1,40 +1,25 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./style/BrowseProfiles.module.css";
-import { Link } from "react-router-dom";
 
-const mockUsers = [
-  "Bongani Sibanda",
-  "Bongani Sibanda",
-  "Bongani Sibanda",
-  "Bongani Sibanda",
-  "Bongani Sibanda",
-  "Bongani Sibanda",
-  "Bongani Sibanda",
-  "Bongani Sibanda",
-  "Bongani Sibanda",
-  "Bongani Sibanda",
-  "Bongani Sibanda",
-  "Bongani Sibanda",
-];
+const CARD_WIDTH = 140;
+const CARD_HEIGHT = 170;
+const PADDING = 20;
+const SEARCH_BAR_HEIGHT = 90;
 
-const CARD_WIDTH = 120;
-const CARD_HEIGHT = 150;
-const SEARCH_BAR_HEIGHT = 80;
-const PADDING = 16;
-
-function generateNonOverlappingPositions(count, viewportWidth, viewportHeight) {
+function generateNonOverlappingPositions(count, width, height) {
   const positions = [];
-  const maxAttempts = 200;
+  const maxAttempts = 300;
 
   for (let i = 0; i < count; i++) {
     let placed = false;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const x = PADDING + Math.random() * (viewportWidth - CARD_WIDTH - PADDING * 2);
+      const x = PADDING + Math.random() * (width - CARD_WIDTH - PADDING * 2);
       const y =
         SEARCH_BAR_HEIGHT +
         PADDING +
-        Math.random() * (viewportHeight - CARD_HEIGHT - SEARCH_BAR_HEIGHT - PADDING * 2);
+        Math.random() * (height - CARD_HEIGHT - SEARCH_BAR_HEIGHT - PADDING * 2);
 
       const overlaps = positions.some(
         (pos) =>
@@ -50,12 +35,9 @@ function generateNonOverlappingPositions(count, viewportWidth, viewportHeight) {
     }
 
     if (!placed) {
-      const cols = Math.floor(viewportWidth / (CARD_WIDTH + PADDING));
-      const col = i % cols;
-      const row = Math.floor(i / cols);
       positions.push({
-        x: PADDING + col * (CARD_WIDTH + PADDING),
-        y: SEARCH_BAR_HEIGHT + PADDING + row * (CARD_HEIGHT + PADDING),
+        x: PADDING,
+        y: SEARCH_BAR_HEIGHT + i * (CARD_HEIGHT + PADDING),
       });
     }
   }
@@ -63,55 +45,63 @@ function generateNonOverlappingPositions(count, viewportWidth, viewportHeight) {
   return positions;
 }
 
-export default function ProfilesPage() {
+export default function BrowseProfiles() {
   const [profiles, setProfiles] = useState([]);
   const [search, setSearch] = useState("");
-  const [selectedUser, setSelectedUser] = useState(null);
   const [positions, setPositions] = useState([]);
+  const navigate = useNavigate();
 
+  // Fetch real users
   useEffect(() => {
-    const users = mockUsers.map((name, index) => ({
-      id: index + 1,
-      name,
-      avatar: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1iDq-BtSsNIF-bIx3nIhgLjZPjqc-wGnyZQ&s",
-    }));
-    setProfiles(users);
+    fetch(`${import.meta.env.VITE_API_URL}/users/all`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch users");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setProfiles(data);
+        } else {
+          setProfiles([]);
+        }
+      })
+      .catch((err) => {
+        console.error("API Error:", err);
+        setProfiles([]);
+      });
   }, []);
 
-  useEffect(() => {
-    if (profiles.length === 0) return;
+  // Generate 3x viewport height layout
+ useEffect(() => {
+  if (!profiles.length) return;
 
-    const generatePositions = () => {
-      const pos = generateNonOverlappingPositions(
-        profiles.length,
-        window.innerWidth,
-        window.innerHeight
-      );
-      setPositions(pos);
-    };
+  const generate = () => {
+    const extendedHeight = window.innerHeight * 3;
 
-    generatePositions();
-    window.addEventListener("resize", generatePositions);
-    return () => window.removeEventListener("resize", generatePositions);
+    const pos = generateNonOverlappingPositions(
+      profiles.length,
+      window.innerWidth,
+      extendedHeight
+    );
+
+    setPositions(pos);
+  };
+
+  generate();
+  window.addEventListener("resize", generate);
+  return () => window.removeEventListener("resize", generate);
   }, [profiles]);
 
-  const filteredProfiles = useMemo(() => {
-    return profiles.filter((profile) =>
-      profile.name.toLowerCase().includes(search.toLowerCase())
+  const filtered = useMemo(() => {
+    return profiles.filter((user) =>
+      user.name.toLowerCase().includes(search.toLowerCase())
     );
   }, [profiles, search]);
 
   return (
     <div className={styles.container}>
-      {/* Top Navbar */}
-      <div className={styles.navbar}>
-        <h1>Profiles</h1>
-      </div>
-      <Link to="/" className={styles.homeLink}>
-        ← Home
-      </Link>
-
-      {/* Search Bar */}
       <div className={styles.searchBar}>
         <input
           type="text"
@@ -121,56 +111,27 @@ export default function ProfilesPage() {
         />
       </div>
 
-      {/* Profiles Area */}
-      <div className={styles.profilesArea}>
-        {filteredProfiles.map((profile) => {
-          const posIndex = profiles.findIndex((p) => p.id === profile.id);
-          const pos = positions[posIndex];
+      <div className={styles.scrollArea}>
+        {filtered.map((user) => {
+          const index = profiles.findIndex(p => p.username === user.username);
+          const pos = positions[index];
           if (!pos) return null;
+
           return (
             <div
-              key={profile.id}
-              className={styles.profileCard}
-              style={{ left: `${pos.x}px`, top: `${pos.y}px` }}
-              onClick={() => setSelectedUser(profile)}
+              key={user.username}
+              className={styles.card}
+              style={{ left: pos.x, top: pos.y }}
+              onClick={() => navigate(`/browse/${user.username}`)}
             >
-              <img src={profile.avatar} alt={profile.name} />
-              <p>{profile.name}</p>
+              <img
+                src={user.profilePicture}
+                alt={user.name}
+              />
+              <p>{user.name}</p>
             </div>
           );
         })}
-      </div>
-
-      {/* Overlay */}
-      <div className={`${styles.profileOverlay} ${selectedUser ? styles.active : ""}`}>
-        {selectedUser && (
-          <div className={styles.overlayContent}>
-            <button className={styles.backButton} onClick={() => setSelectedUser(null)}>
-              ← Back
-            </button>
-             {/* Link to Home Page */}
-            <Link to="/" className={styles.homeLink}>
-              🏠 Home
-            </Link>
-
-            <div className={styles.profileHeader}>
-              <img src={selectedUser.avatar} alt={selectedUser.name} />
-              <h2>{selectedUser.name}</h2>
-            </div>
-
-            <div className={styles.underConstruction}>
-              <div className={styles.constructionIcon}>🚧</div>
-              <h3>This profile is under construction</h3>
-              <p>
-                We're building something amazing here. Check back soon for updates, memories,
-                and shared moments.
-              </p>
-              <div className={styles.placeholderBox}>
-                <div className={styles.tool}>🛠️</div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

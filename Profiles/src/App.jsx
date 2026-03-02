@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import ProfileEdit from "./pages/ProfileEdit";
 import BrowseProfiles from "./pages/BrowseProfiles"
+import UserProfile from "./pages/UserProfiles";
 
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -40,7 +41,12 @@ export default function App() {
                 <BrowseProfiles />
               </ProtectedRoute>
           }/>
-
+          <Route 
+            path="/browse/:username" element={
+              <ProtectedRoute>
+                <UserProfile />
+              </ProtectedRoute>
+          }/>
       </Routes>
       <Analytics />
     </BrowserRouter>
