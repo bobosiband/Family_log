@@ -1,31 +1,45 @@
 /* BrowseProfiles.module.css */
 
+:root {
+  --primary: #4f46e5;
+  --accent: #5cbf77;
+  --bg: #f4f6f8;
+  --card-bg: #fff;
+  --text: #333;
+  --shadow: rgba(0, 0, 0, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
 .container {
   position: relative;
   width: 100%;
-  height: 100vh;
-  overflow-y: scroll;
-  background: #f4f6f8;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+  overflow-x: hidden;
 }
 
-/* Navbar */
 .navbar {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 60px;
-  background: #4f46e5;
+  background: var(--primary);
   color: white;
   display: flex;
   align-items: center;
   padding: 0 20px;
   z-index: 300;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 6px var(--shadow);
+  font-weight: 600;
+  font-size: 1rem;
 }
 
-/* Search Bar */
 .searchBar {
   position: fixed;
   top: 60px;
@@ -37,57 +51,56 @@
   align-items: center;
   justify-content: center;
   z-index: 250;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 6px var(--shadow);
 }
 
 .searchBar input {
   width: 60%;
-  max-width: 420px;
-  padding: 10px 16px;
-  border-radius: 25px;
+  max-width: 480px;
+  padding: 12px 18px;
+  border-radius: 30px;
   border: 1px solid #ddd;
-  font-size: 14px;
+  font-size: 15px;
   outline: none;
+  transition: box-shadow 0.2s, border-color 0.2s;
 }
 
 .searchBar input:focus {
-  border-color: #4f46e5;
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
 }
 
-/* Scrollable Profile Area */
 .scrollArea {
   position: relative;
   width: 100%;
-  height: 300vh; /* 3x viewport height */
-  margin-top: 120px; /* navbar + search bar space */
+  margin-top: 120px; /* navbar + search bar */
 }
 
-/* Profile Card */
 .card {
   position: absolute;
-  width: 140px;
-  height: 170px;
+  width: 160px;
+  height: 200px;
   text-align: center;
   cursor: pointer;
-  transition: transform 0.25s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .card img {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
+  width: 100%;
+  height: 120px;
+  border-radius: 8px;
   object-fit: cover;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 14px var(--shadow);
 }
 
 .card p {
   margin-top: 10px;
   font-weight: 500;
-  font-size: 13px;
-  color: #333;
+  font-size: 14px;
+  color: var(--text);
 }
 
 .card:hover {
-  transform: scale(1.08);
+  transform: scale(1.1);
+  box-shadow: 0 12px 24px var(--shadow);
 }

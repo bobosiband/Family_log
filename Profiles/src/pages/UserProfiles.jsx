@@ -1,63 +1,105 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styles from "./style/UserProfile.module.css";
 
 export default function UserProfile() {
   const { username } = useParams();
   const navigate = useNavigate();
+
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const capitalizeFirstWord = (str) =>
+    str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/users/all`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to fetch users");
+    const fetchUser = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/users/all`
+        );
+        const data = await response.json();
+
+        if (!response.ok) {
+          setError(data.error || "Failed to fetch users");
+          return;
         }
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data)) {
-          const foundUser = data.find(
-            (u) => u.username === username
-          );
-          setUser(foundUser || null);
-        } else {
-          setUser(null);
+
+        const foundUser = data.find((u) => u.username === username);
+
+        if (!foundUser) {
+          setError("User not found");
+          return;
         }
-      })
-      .catch((err) => {
-        console.error("API Error:", err);
-        setUser(null);
-      });
+
+        setUser(foundUser);
+      } catch (err) {
+        console.error(err);
+        setError("Server not reachable");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
   }, [username]);
 
-  if (!user) {
+  if (loading) {
     return (
-      <div className={styles.loading}>
-        User not found...
-      </div>
+      <main className={styles.page}>
+        <div className={styles.card}>
+          <div className={styles.loader} />
+          <p>Loading profile…</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className={styles.page}>
+        <div className={styles.card}>
+          <button
+            className={styles.backBtn}
+            onClick={() => navigate(-1)}
+          >
+            ← Back
+          </button>
+          <p className={styles.error}>{error}</p>
+        </div>
+      </main>
     );
   }
 
   return (
-    <div className={styles.container}>
-      <button
-        className={styles.backBtn}
-        onClick={() => navigate(-1)}
-      >
-        ← Back
-      </button>
-
+    <main className={styles.page}>
       <div className={styles.card}>
-        <h2>@{user.username}</h2>
-        <p>{user.name}</p>
-        <p>{user.lastName}</p>
-        <p className={styles.bio}>{user.bio}</p>
-      </div>
+        <button
+          className={styles.backBtn}
+          onClick={() => navigate(-1)}
+        >
+          ← Back
+        </button>
 
-      <div className={styles.underConstruction}>
-        🚧 Under Construction
+        <img
+          src={user.profilePictureUrl}
+          alt={user.username}
+          className={styles.avatar}
+        />
+
+        <h2>@{user.username}</h2>
+        <p>
+          {capitalizeFirstWord(user.name)}{" "}
+          {capitalizeFirstWord(user.surname)}
+        </p>
+        <p className={styles.bio}>{user.bio}</p>
+
+        <div className={styles.underConstruction}>🚧 Under Construction</div>
       </div>
-    </div>
+    </main>
   );
 }
