@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import styles from "./style/Home.module.css";
+import { useEffect, useState, useRef } from "react";
 
 // EXACT image imports as requested
 import MainPics0 from "../assets/images/MainPics0.JPG";
@@ -14,6 +15,35 @@ import MainPics7 from "../assets/images/MainPics7.JPG";
 
 export default function Home() {
   const { user } = useAuth();
+  const [joke, setJoke] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showPunchline, setShowPunchline] = useState(false);
+  const intervalRef = useRef(null);
+
+  const fetchJoke = async () => {
+    try {
+      setLoading(true);
+      setShowPunchline(false);
+
+      const res = await fetch(
+        "https://official-joke-api.appspot.com/random_joke"
+      );
+      const data = await res.json();
+      setJoke(data);
+    } catch (err) {
+      console.error("Failed to fetch joke:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchJoke();
+
+    intervalRef.current = setInterval(fetchJoke, 35000);
+
+    return () => clearInterval(intervalRef.current);
+  }, []);
 
   return (
     <main className={styles.home}>
@@ -75,7 +105,51 @@ export default function Home() {
           <img src={MainPics7} alt="Gallery 4" />
         </div>
       </section>
+      {/* JOKE SECTION */}
+      <section className={styles.jokeSection}>
+        <h2>Random Dad Joke 😄</h2>
 
+        <div
+          className={styles.jokeCard}
+          onClick={() => !loading && setShowPunchline((prev) => !prev)}
+        >
+          {loading && <div className={styles.jokeSkeleton}></div>}
+
+          {!loading && joke && (
+            <>
+              <div className={styles.setup}>
+                {joke.setup.split(" ").map((word, index) => (
+                  <span
+                    key={index}
+                    className={styles.word}
+                    style={{ animationDelay: `${index * 0.06}s` }}
+                  >
+                    {word}&nbsp;
+                  </span>
+                ))}
+              </div>
+
+              <div
+                className={`${styles.punchline} ${
+                  showPunchline ? styles.showPunchline : ""
+                }`}
+              >
+                {joke.punchline}
+              </div>
+            </>
+          )}
+        </div>
+
+        <button
+          className={styles.refreshButton}
+          onClick={(e) => {
+            e.stopPropagation();
+            fetchJoke();
+          }}
+        >
+          Get New Joke
+        </button>
+      </section>
     </main>
   );
 }
