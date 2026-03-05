@@ -104,3 +104,14 @@
   transform: scale(1.1);
   box-shadow: 0 12px 24px var(--shadow);
 }
+
+.homeLink {
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: underline;
+  margin-right: 8px;
+}
+
+.homeLink:hover {
+  color: var(--accent);
+}
