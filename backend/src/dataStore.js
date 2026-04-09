@@ -13,9 +13,11 @@ let data = {
     users: [],
     totalusersevercreated: 0
 };
-
+let isConnected = false;
 async function initData() {
+  if (isConnected) return; // reuse existing connection
   await client.connect();
+  isConnected = true;
   const db = client.db(dbName);
   const collection = db.collection(collectionName);
 
