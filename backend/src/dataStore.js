@@ -1,10 +1,14 @@
-import * as fs from 'fs';
 import { MongoClient } from "mongodb";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const client = new MongoClient(process.env.MONGO_URI);
+const mongoUri = process.env.MONGO_URI;
+if (!mongoUri) {
+  throw new Error("MONGO_URI is not configured");
+}
+
+const client = new MongoClient(mongoUri);
 const dbName = "familylog";
 const collectionName = "datastore";
 
