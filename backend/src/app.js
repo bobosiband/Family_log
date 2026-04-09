@@ -5,7 +5,7 @@ import morgan from 'morgan';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { getData, saveDataPersistently } from './dataStore.js';
+import { getData } from './dataStore.js';
 import { authRegisterUser, authLoginUser } from './implementations/auth.js';
 import { editProfile, editPassword } from './implementations/edits.js';
 import { getUserInfo } from './implementations/userInfo.js';
@@ -35,7 +35,7 @@ app.post('/auth/register', async (req, res) => {
     return res.status(400).json(result);
   }
   await persistData();
-  saveDataPersistently();
+//   saveDataPersistently();
   return res.status(200).json(result);
 });
 
@@ -46,7 +46,7 @@ app.post('/auth/login', async (req, res) => {
     return res.status(400).json(result);
   }
   await persistData();
-  saveDataPersistently();
+//   saveDataPersistently();
   return res.status(200).json(result);
 });
 
@@ -57,7 +57,7 @@ app.put('/profile/edit', async (req, res) => {
     return res.status(400).json(result);
   }
   await persistData();
-  saveDataPersistently();
+//   saveDataPersistently();
   return res.status(200).json(result);
 });
 
@@ -111,7 +111,7 @@ app.post('/profile/password/change/:userid', async (req, res) => {
     return res.status(400).json(result);
   }
   await persistData();
-  saveDataPersistently();
+//   saveDataPersistently();
   return res.status(200).json(result);
 });
 

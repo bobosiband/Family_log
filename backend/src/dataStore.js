@@ -13,11 +13,15 @@ let data = {
     users: [],
     totalusersevercreated: 0
 };
+
 let isConnected = false;
+
 async function initData() {
-  if (isConnected) return; // reuse existing connection
+  if (isConnected) return;
+
   await client.connect();
   isConnected = true;
+
   const db = client.db(dbName);
   const collection = db.collection(collectionName);
 
@@ -25,10 +29,8 @@ async function initData() {
 
   if (saved) {
     data = saved.data;
-    console.log("✅ Data loaded from MongoDB");
   } else {
     await collection.insertOne({ name: "appdata", data });
-    console.log("🆕 Initialized new datastore");
   }
 }
 
@@ -51,32 +53,32 @@ function getData() {
     return data;
 }
 
-function loadDataOnStartup() {
-  try {
-    const rawData = fs.readFileSync('data.json', 'utf-8');
-    data = JSON.parse(rawData);
-  } catch {
-    console.log('Existing data could not be loaded or was not found, using default empty dataStore');
-  }
-}
+// function loadDataOnStartup() {
+//   try {
+//     const rawData = fs.readFileSync('data.json', 'utf-8');
+//     data = JSON.parse(rawData);
+//   } catch {
+//     console.log('Existing data could not be loaded or was not found, using default empty dataStore');
+//   }
+// }
 
 /**
   * Save Data
   * Should be called every time an endpoint returns successfully
   * We should also consider calling it every time when an async function finishes running
 */
-function saveDataPersistently() {
-  try {
-    fs.writeFileSync('data.json', JSON.stringify(data, null, 2));
-  } catch {
-    console.log('Data could not be saved persistantly');
-  }
-}
+// function saveDataPersistently() {
+//   try {
+//     fs.writeFileSync('data.json', JSON.stringify(data, null, 2));
+//   } catch {
+//     console.log('Data could not be saved persistantly');
+//   }
+// }
 
 export {
   getData,
-  loadDataOnStartup,
-  saveDataPersistently,
+  // loadDataOnStartup,
+  // saveDataPersistently,
   initData,
   persistData
 }
