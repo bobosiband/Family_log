@@ -1,7 +1,12 @@
 import app from '../src/app.js';
 import { initData } from '../src/dataStore.js';
 
-// initData called here so Vercel serverless functions initialize MongoDB
-await initData();
+let initialized = false;
 
-export default app;
+export default async function handler(req, res) {
+  if (!initialized) {
+    await initData();
+    initialized = true;
+  }
+  return app(req, res);
+}
