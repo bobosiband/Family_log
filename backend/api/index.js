@@ -1,3 +1,8 @@
+import app from '../src/app.js';
+import { initData } from '../src/dataStore.js';
+
+let initialized = false;
+
 export default async function handler(req, res) {
   try {
     console.log("Incoming request:", req.url);
