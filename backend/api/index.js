@@ -1,12 +1,16 @@
-import app from '../src/app.js';
-import { initData } from '../src/dataStore.js';
-
-let initialized = false;
-
 export default async function handler(req, res) {
-  if (!initialized) {
-    await initData();
-    initialized = true;
+  try {
+    console.log("Incoming request:", req.url);
+
+    if (!initialized) {
+      console.log("Initializing data...");
+      await initData();
+      initialized = true;
+    }
+
+    return app(req, res);
+  } catch (err) {
+    console.error("CRASH:", err);
+    res.status(500).json({ error: err.message });
   }
-  return app(req, res);
 }
