@@ -75,10 +75,17 @@ button {
   animation: pageFade 0.45s ease;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1023px) {
+  .contentWithSidebar {
+    margin-left: 240px;
+    padding: 1.5rem 1.25rem;
+  }
+}
+
+@media (max-width: 767px) {
   .contentWithSidebar {
     margin-left: 0;
-    margin-top: 94px;
+    margin-top: 0;
     padding: 1.25rem 1rem;
   }
 }

@@ -162,46 +162,128 @@
   display: flex;
 }
 
-@media (max-width: 900px) {
+.hamburgerButton {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1030;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.hamburgerButton:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.hamburgerButton span {
+  width: 20px;
+  height: 2px;
+  border-radius: 999px;
+  background: #f8fbff;
+  display: block;
+}
+
+.mobileOverlay {
+  display: none;
+}
+
+.closeButton {
+  display: none;
+}
+
+.mobileOpen {
+  transform: translateX(0);
+}
+
+@media (max-width: 1023px) {
+  .sidebar {
+    width: 240px;
+  }
+}
+
+@media (max-width: 767px) {
+  .hamburgerButton {
+    display: flex;
+  }
+
   .sidebar {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    width: 100%;
-    height: auto;
-    min-height: unset;
-    flex-direction: row;
+    width: 80vw;
+    max-width: 320px;
+    height: 100vh;
+    min-height: 100vh;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    padding: 1.75rem 1.5rem;
+    box-shadow: 24px 0 76px rgba(0, 0, 0, 0.22);
+    z-index: 1050;
+  }
+
+  .mobileOpen {
+    transform: translateX(0);
+  }
+
+  .mobileOverlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .closeButton {
+    display: flex;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
     align-items: center;
-    padding: 1rem 1.25rem;
-    gap: 1rem;
-    box-shadow: 0 8px 24px rgba(10, 25, 47, 0.18);
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.1rem;
   }
 
-  .brand {
-    flex: 1;
-  }
-
-  .burger {
-    display: inline-flex;
+  .closeButton:hover {
+    opacity: 0.85;
   }
 
   .navList {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 76px;
-    background: #160826;
-    padding: 1.25rem;
-    gap: 1rem;
-    border-bottom-left-radius: 20px;
-    border-bottom-right-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    display: none;
+    position: static;
+    top: auto;
+    left: auto;
+    right: auto;
+    background: transparent;
+    padding: 0;
+    gap: 0.75rem;
+    border-radius: 0;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    max-height: none;
+    overflow: visible;
   }
 
-  .navList.open {
-    display: flex;
+  .brand {
+    align-items: center;
   }
 
   .sectionTitle {
