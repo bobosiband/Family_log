@@ -1,12 +1,95 @@
-/* Safe default styles */
+:root {
+  --brand-ink: #160826;
+  --brand-deep: #3b1060;
+  --brand-purple: #6b2080;
+  --brand-rose: #bf6085;
+  --brand-violet: #c084fc;
+  --surface: #f9f7ff;
+  --surface-strong: #ffffff;
+  --text-default: #0f172a;
+  --text-muted: #5d6276;
+  --text-inverted: #f8fbff;
+  --shadow-soft: 0 20px 60px rgba(21, 8, 38, 0.12);
+  --shadow-card: 0 18px 48px rgba(21, 8, 38, 0.12);
+  --focus-ring: rgba(192, 132, 252, 0.24);
+}
+
 * {
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
+html {
+  scroll-behavior: smooth;
 }
 
-#root {
+body {
+  margin: 0;
   min-height: 100vh;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(180deg, #f8f4ff 0%, #f0f7ff 100%);
+  color: var(--text-default);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+img,
+svg {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.appShell {
+  display: flex;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #faf8ff 0%, #eef4ff 100%);
+}
+
+.contentWithSidebar {
+  flex: 1;
+  margin-left: 260px;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8f5ff 0%, #edf2fb 100%);
+  padding: 2rem 2.5rem;
+  animation: pageFade 0.45s ease;
+  transition: margin 0.3s ease, padding 0.3s ease;
+}
+
+.contentFull {
+  flex: 1;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8f5ff 0%, #edf2fb 100%);
+  animation: pageFade 0.45s ease;
+}
+
+@media (max-width: 900px) {
+  .contentWithSidebar {
+    margin-left: 0;
+    margin-top: 94px;
+    padding: 1.25rem 1rem;
+  }
+}
+
+@keyframes pageFade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

@@ -1,8 +1,6 @@
-/* ================= PAGE LAYOUT ================= */
-
 .page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #caa6a0, #e7c4be);
+  background: linear-gradient(135deg, #f8f4ff, #f3efff);
   display: flex;
   justify-content: center;
   padding: 60px 20px;
@@ -10,14 +8,12 @@
 
 .wrapper {
   width: 100%;
-  max-width: 520px;
+  max-width: 540px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 40px;
+  gap: 36px;
 }
-
-/* ================= AVATAR SECTION ================= */
 
 .avatarSection {
   display: flex;
@@ -31,20 +27,20 @@
   height: 160px;
   border-radius: 50%;
   overflow: hidden;
-  border: 6px solid white;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-  background: #ddd;
+  border: 6px solid rgba(192, 132, 252, 0.35);
+  box-shadow: 0 18px 42px rgba(21, 8, 38, 0.14);
+  background: #f7f1ff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 48px;
   font-weight: bold;
-  color: #555;
+  color: #6c4ba2;
   transition: transform 0.3s ease;
 }
 
 .avatar:hover {
-  transform: scale(1.03);
+  transform: translateY(-2px) scale(1.02);
 }
 
 .avatar img {
@@ -56,50 +52,50 @@
 .changePhotoBtn {
   font-size: 14px;
   cursor: pointer;
-  color: #333;
-  font-weight: 500;
-  transition: 0.2s ease;
+  color: #6b2080;
+  font-weight: 600;
+  transition: color 0.2s ease;
 }
 
 .changePhotoBtn:hover {
-  color: #000;
+  color: #4f1c6d;
 }
 
 .uploadBtn {
-  padding: 6px 16px;
-  font-size: 13px;
-  border-radius: 20px;
+  padding: 10px 18px;
+  font-size: 14px;
+  border-radius: 24px;
   border: none;
-  background: #333;
+  background: linear-gradient(135deg, #c084fc, #bf6085);
   color: white;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .uploadBtn:hover {
-  background: #555;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgba(192, 132, 252, 0.18);
 }
-
-/* ================= CARD ================= */
 
 .card {
   width: 100%;
-  background: white;
+  background: rgba(255, 255, 255, 0.96);
   padding: 40px;
   border-radius: 28px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(192, 132, 252, 0.18);
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   gap: 18px;
+  animation: fadeInUp 0.55s ease both;
 }
 
 .card h2 {
   text-align: center;
   margin-bottom: 10px;
   font-size: 22px;
+  color: var(--brand-deep);
 }
-
-/* ================= INPUT GROUP ================= */
 
 .inputGroup {
   display: flex;
@@ -109,27 +105,25 @@
 
 .inputGroup label {
   font-size: 13px;
-  color: #555;
+  color: var(--brand-deep);
 }
 
 .inputGroup input,
 .inputGroup textarea {
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: none;
-  background: #f3f3f3;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(192, 132, 252, 0.2);
+  background: #f6f1ff;
   font-size: 14px;
-  transition: all 0.2s ease;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .inputGroup input:focus,
 .inputGroup textarea:focus {
   outline: none;
-  background: #eaeaea;
-  box-shadow: 0 0 0 2px rgba(190, 28, 63, 0.25);
+  border-color: rgba(192, 132, 252, 0.7);
+  box-shadow: 0 0 0 4px rgba(192, 132, 252, 0.12);
 }
-
-/* ================= BUTTON ================= */
 
 .primaryBtn {
   margin-top: 10px;
@@ -137,16 +131,16 @@
   border-radius: 18px;
   border: none;
   font-size: 15px;
-  font-weight: 600;
-  background: linear-gradient(90deg, #be1c3faf, #a85b5b);
+  font-weight: 700;
+  background: linear-gradient(135deg, #c084fc, #bf6085);
   color: white;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .primaryBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 25px rgba(168, 91, 91, 0.35);
+  box-shadow: 0 14px 24px rgba(192, 132, 252, 0.2);
 }
 
 .primaryBtn:disabled {
@@ -154,8 +148,6 @@
   cursor: not-allowed;
   transform: none;
 }
-
-/* ================= RESPONSIVE ================= */
 
 @media (max-width: 500px) {
   .card {
@@ -165,5 +157,16 @@
   .avatar {
     width: 130px;
     height: 130px;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

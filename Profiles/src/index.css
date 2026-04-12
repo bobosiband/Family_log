@@ -1,107 +1,47 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family: Arial, sans-serif;
   margin: 0;
-  }
-  
-
-  /* nav {
-  background: #222;
-  padding: 1rem;
-  } */
-  
-  .profileImage {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    object-fit: cover; /* Prevents image stretching */
-    border: 4px solid #f0f0f0;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  min-height: 100vh;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--surface);
+  color: var(--text-default);
+  overflow-x: hidden;
 }
 
-.profileName {
-    font-size: 24px;
-}
-.profileBio {
-    font-size: 16px;
-    color: #666;
-    margin-top: 10px;
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
-.logoutButton {
-    margin-top: 16px;
-    padding: 6px 16px;
-    background-color: #ff4d4f;
-    color: white;
-    border: none;
-
-    border-radius: 999px;   /* curved edges */
-    font-size: 14px;
-    cursor: pointer;
-
-    width: fit-content;     /* 👈 key fix */
-    align-self: flex-start; /* prevents stretching */
-    
-    transition: background-color 0.2s ease, transform 0.1s ease;
-}
-
-.logoutButton:hover {
-    background-color: #ff7875;
-    transform: translateY(-1px);
-}
-
-
-.logoutButton:active {
-    transform: translateY(0);
-}
-
-.profileImageWrapper {
-    display: flex;       /* horizontal layout */
-    align-items: center; /* vertically center image and button */
-    gap: 12px;           /* space between image and button */
-    margin-bottom: 16px;
-}
-
-.editButton {
-    margin-top: 16px;
-    padding: 6px 16px;
-    background-color: #685454;
-    color: white;
-    border: none;
-
-    border-radius: 999px;   /* curved edges */
-    font-size: 14px;
-    cursor: pointer;
-
-    width: fit-content;     /* 👈 key fix */
-    align-self: flex-start; /* prevents stretching */
-    
-    transition: background-color 0.2s ease, transform 0.1s ease;
-}
-
-
-.editButton:hover {
-    background-color: rgba(226, 9, 9, 0.85);
-}
-
-  nav a {
-  color: white;
-  margin-right: 1rem;
+a {
+  color: inherit;
   text-decoration: none;
-  }
-  
-  
-  main {
-  padding: 2rem;
-  }
-  
-  
-  form {
-  max-width: 400px;
-  }
-  
-  
-  input, button {
-  width: 100%;
-  margin-bottom: 1rem;
-  padding: 0.5rem;
-  }
+}
+
+button {
+  border: none;
+  background: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+input,
+textarea {
+  outline: none;
+}
+
+::selection {
+  background: rgba(192, 132, 252, 0.2);
+}
