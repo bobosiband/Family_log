@@ -1,59 +1,85 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../AuthContext";
 import styles from "./style/UserProfile.module.css";
+
+const normalizeUsername = (value) => value?.toString().trim().replace(/^@/, "").toLowerCase();
+const formatDate = (value) => {
+  if (!value) return "Unknown";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Unknown";
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
+const completionScore = (profile) => {
+  if (!profile) return 0;
+  const fields = ["name", "surname", "username", "email", "bio", "profilePictureUrl"];
+  const filled = fields.reduce((count, field) => {
+    const value = profile[field];
+    if (!value) return count;
+    return count + (typeof value === "string" ? Boolean(value.trim()) : 1);
+  }, 0);
+  return Math.round((filled / fields.length) * 100);
+};
 
 export default function UserProfile() {
   const { username } = useParams();
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
 
-  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const capitalizeFirstWord = (str) =>
-    str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
-
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchProfile = async () => {
       setLoading(true);
       setError("");
+      setProfile(null);
 
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/users/all`
-        );
-        const data = await response.json();
-
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/all`);
         if (!response.ok) {
-          setError(data.error || "Failed to fetch users");
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.message || "Unable to load profile.");
+        }
+
+        const data = await response.json();
+        const users = Array.isArray(data) ? data : [];
+        const found = users.find((item) => normalizeUsername(item.username) === normalizeUsername(username));
+
+        if (!found) {
+          setError("We couldn't find that family profile.");
           return;
         }
 
-        const foundUser = data.find((u) => u.username === username);
-
-        if (!foundUser) {
-          setError("User not found");
-          return;
-        }
-
-        setUser(foundUser);
+        setProfile(found);
       } catch (err) {
         console.error(err);
-        setError("Server not reachable");
+        setError(err.message || "Something went wrong while loading the profile.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUser();
+    fetchProfile();
   }, [username]);
+
+  const isOwnProfile = useMemo(
+    () => Boolean(currentUser && profile && normalizeUsername(currentUser.username) === normalizeUsername(profile.username)),
+    [currentUser, profile]
+  );
 
   if (loading) {
     return (
       <main className={styles.page}>
-        <div className={styles.card}>
-          <div className={styles.loader} />
-          <p>Loading profile…</p>
+        <div className={styles.loadingCard}>
+          <div className={styles.spinner} />
+          <p>Loading profile...</p>
         </div>
       </main>
     );
@@ -62,44 +88,128 @@ export default function UserProfile() {
   if (error) {
     return (
       <main className={styles.page}>
-        <div className={styles.card}>
-          <button
-            className={styles.backBtn}
-            onClick={() => navigate(-1)}
-          >
-            ← Back
+        <div className={styles.emptyCard}>
+          <button type="button" className={styles.backButton} onClick={() => navigate(-1)}>
+            ← Go back
           </button>
-          <p className={styles.error}>{error}</p>
+          <h2>Profile not available</h2>
+          <p>{error}</p>
         </div>
       </main>
     );
   }
 
+  const profileCompletion = completionScore(profile);
+
   return (
     <main className={styles.page}>
-      <div className={styles.card}>
-        <button
-          className={styles.backBtn}
-          onClick={() => navigate(-1)}
-        >
-          ← Back
+      <div className={styles.pageHeader}>
+        <button type="button" className={styles.backButton} onClick={() => navigate(-1)}>
+          ← Back to family
         </button>
-
-        <img
-          src={user.profilePictureUrl}
-          alt={user.username}
-          className={styles.avatar}
-        />
-
-        <h2>@{user.username}</h2>
-        <p>
-          {capitalizeFirstWord(user.name)}{" "}
-          {capitalizeFirstWord(user.surname)}
-        </p>
-        <p className={styles.bio}>{user.bio}</p>
-
-        <div className={styles.underConstruction}>🚧 Under Construction</div>
       </div>
+
+      <section className={styles.profileHeader}>
+        <div className={styles.profileHero}>
+          <div className={styles.avatarFrame}>
+            <img
+              src={profile.profilePictureUrl || "https://via.placeholder.com/260?text=Profile"}
+              alt={profile.username}
+              className={styles.avatar}
+            />
+          </div>
+          <div className={styles.headerCopy}>
+            <div className={styles.badgeRow}>
+              <span className={styles.statusPill}>Family profile</span>
+              <span className={styles.completionPill}>{profileCompletion}% complete</span>
+            </div>
+            <h1>{`${profile.name || "Family"} ${profile.surname || "Member"}`.trim()}</h1>
+            <p className={styles.handle}>@{profile.username || "unknown"}</p>
+            <p className={styles.profileBio}>{profile.bio || "This family profile is still being shaped with memories and stories."}</p>
+            <div className={styles.heroActions}>
+              {isOwnProfile ? (
+                <button type="button" className={styles.primaryButton} onClick={() => navigate("/profile/edit")}>Edit profile</button>
+              ) : (
+                <>
+                  <button type="button" className={styles.primaryButton}>Follow</button>
+                  <button type="button" className={styles.secondaryButton}>Send message</button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.cardGrid}>
+        <div className={styles.infoCard}>
+          <h2>Profile details</h2>
+          <div className={styles.detailRow}>
+            <span>Full name</span>
+            <p>{`${profile.name || "-"} ${profile.surname || ""}`.trim()}</p>
+          </div>
+          <div className={styles.detailRow}>
+            <span>Username</span>
+            <p>@{profile.username || "-"}</p>
+          </div>
+          <div className={styles.detailRow}>
+            <span>Email</span>
+            <p>{profile.email || "Hidden"}</p>
+          </div>
+          <div className={styles.detailRow}>
+            <span>Member since</span>
+            <p>{formatDate(profile.createdAt || profile.joinedAt || profile.created)}</p>
+          </div>
+          <div className={styles.detailRow}>
+            <span>Account status</span>
+            <p>{profile.status || "Active"}</p>
+          </div>
+        </div>
+
+        <div className={styles.statsCard}>
+          <h2>Family highlights</h2>
+          <p className={styles.statsCopy}>A snapshot of how complete this profile is and when it was last updated.</p>
+          <div className={styles.statRow}>
+            <div>
+              <span>Completion</span>
+              <strong>{profileCompletion}%</strong>
+            </div>
+            <div>
+              <span>Joined</span>
+              <strong>{formatDate(profile.createdAt || profile.joinedAt || profile.created)}</strong>
+            </div>
+          </div>
+          <div className={styles.progressBar}>
+            <div className={styles.progressFill} style={{ width: `${profileCompletion}%` }} />
+          </div>
+          <div className={styles.statRow}>
+            <div>
+              <span>Last update</span>
+              <strong>{formatDate(profile.updatedAt || profile.lastUpdated || profile.modifiedAt)}</strong>
+            </div>
+            <div>
+              <span>Status</span>
+              <strong>{profile.status || "Active"}</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.actionCard}>
+        <div>
+          <h2>Need help next?</h2>
+          <p>Use these quick actions to keep the profile current or connect with this family member.</p>
+        </div>
+        <div className={styles.actionRow}>
+          <button type="button" className={styles.secondaryButton} onClick={() => navigate(-1)}>
+            Back to browse
+          </button>
+          {isOwnProfile ? (
+            <button type="button" className={styles.primaryButton} onClick={() => navigate("/profile/edit")}>Update profile</button>
+          ) : (
+            <button type="button" className={styles.primaryButton}>Send a note</button>
+          )}
+        </div>
+      </section>
     </main>
   );
 }
