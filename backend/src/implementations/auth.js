@@ -2,6 +2,10 @@ import bcrypt from "bcrypt";
 import { getData } from "../dataStore.js";
 import { validateEmail, validateUsername, validatePasswordStrength } from "../validation.js";
 
+function isBcryptHash(value) {
+  return typeof value === "string" && (value.startsWith("$2a$") || value.startsWith("$2b$"));
+}
+
 /**
  * Registers a new user with hashed password.
  * @param {string} name 
@@ -100,13 +104,33 @@ async function authLoginUser(username, password) {
       }
     }
     
-    // Compare password with hash
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    
+    const storedPassword = user.password;
+    const passwordMatch = isBcryptHash(storedPassword)
+      ? await bcrypt.compare(password, storedPassword)
+      : storedPassword === password;
+
     if (!passwordMatch) {
       return {
         error: "invalid credentials",
         message: "incorrrect username or password",
+      }
+    }
+
+    if (!isBcryptHash(storedPassword)) {
+      user.password = await bcrypt.hash(storedPassword, 10);
+
+      if (Array.isArray(user.passwordHistory)) {
+        const migratedHistory = [];
+        for (const entry of user.passwordHistory) {
+          if (typeof entry !== "string" || entry.length === 0) continue;
+          migratedHistory.push(isBcryptHash(entry) ? entry : await bcrypt.hash(entry, 10));
+        }
+        if (!migratedHistory.length) {
+          migratedHistory.push(user.password);
+        }
+        user.passwordHistory = migratedHistory;
+      } else {
+        user.passwordHistory = [user.password];
       }
     }
 
