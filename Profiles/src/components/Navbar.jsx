@@ -1,12 +1,35 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './navbar.module.css';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    async function fetchUnreadCount() {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/${user.id}/messages`);
+        const data = await response.json();
+        if (data.inbox) {
+          setUnreadCount(data.inbox.filter(m => !m.read).length);
+        }
+      } catch (err) {
+        console.error('Failed to fetch unread count:', err);
+      }
+    }
+
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 60000);
+    return () => clearInterval(interval);
+  }, [user?.id]);
+  
+  // TODO: replace polling with Socket.IO
 
   const handleLogout = () => {
     logout();
@@ -91,6 +114,15 @@ export default function Navbar() {
                 onClick={closeMobileMenu}
               >
                 My Profile
+              </NavLink>
+              <NavLink
+                to="/messages"
+                className={({ isActive }) =>
+                  isActive ? `${styles.link} ${styles.active}` : styles.link
+                }
+                onClick={closeMobileMenu}
+              >
+                Messages {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
               </NavLink>
               <NavLink
                 to="/profile/edit"

@@ -34,6 +34,9 @@ export default function UserProfile() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showCompose, setShowCompose] = useState(false);
+  const [messageForm, setMessageForm] = useState({ subject: "", content: "" });
+  const [messageStatus, setMessageStatus] = useState({ loading: false, success: "", error: "" });
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -73,6 +76,37 @@ export default function UserProfile() {
     () => Boolean(currentUser && profile && normalizeUsername(currentUser.username) === normalizeUsername(profile.username)),
     [currentUser, profile]
   );
+
+  const handleSendMessage = async () => {
+    if (!currentUser || !profile) return;
+    const { subject, content } = messageForm;
+    if (!subject.trim() || !content.trim()) {
+      setMessageStatus({ loading: false, success: "", error: "Subject and message cannot be empty." });
+      return;
+    }
+    setMessageStatus({ loading: true, success: "", error: "" });
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          senderId: currentUser.id || currentUser._id || currentUser.userId,
+          recipientId: profile.id || profile._id || profile.userId,
+          subject: subject.trim(),
+          content: content.trim(),
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to send message.');
+      }
+      setMessageStatus({ loading: false, success: 'Message sent!', error: '' });
+      setMessageForm({ subject: '', content: '' });
+      setTimeout(() => setShowCompose(false), 1500);
+    } catch (err) {
+      setMessageStatus({ loading: false, success: '', error: err.message });
+    }
+  };
 
   if (loading) {
     return (
@@ -131,11 +165,44 @@ export default function UserProfile() {
                 <button type="button" className={styles.primaryButton} onClick={() => navigate("/profile/edit")}>Edit profile</button>
               ) : (
                 <>
-                  <button type="button" className={styles.primaryButton}>Follow</button>
-                  <button type="button" className={styles.secondaryButton}>Send message</button>
+                  <button type="button" className={styles.secondaryButton} onClick={() => setShowCompose((prev) => !prev)}>
+                    {showCompose ? 'Cancel' : 'Send message'}
+                  </button>
                 </>
               )}
             </div>
+            {showCompose && !isOwnProfile && (
+              <div className={styles.composePanel}>
+                <label>
+                  Subject
+                  <input
+                    type="text"
+                    value={messageForm.subject}
+                    onChange={(e) => setMessageForm((prev) => ({ ...prev, subject: e.target.value }))}
+                    placeholder="What's this about?"
+                  />
+                </label>
+                <label>
+                  Message
+                  <textarea
+                    rows={4}
+                    value={messageForm.content}
+                    onChange={(e) => setMessageForm((prev) => ({ ...prev, content: e.target.value }))}
+                    placeholder="Write something..."
+                  />
+                </label>
+                {messageStatus.error && <p className={styles.errorText}>{messageStatus.error}</p>}
+                {messageStatus.success && <p className={styles.successText}>{messageStatus.success}</p>}
+                <button
+                  type="button"
+                  className={styles.primaryButton}
+                  disabled={messageStatus.loading}
+                  onClick={handleSendMessage}
+                >
+                  {messageStatus.loading ? 'Sending...' : 'Send'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -152,12 +219,12 @@ export default function UserProfile() {
             <p>@{profile.username || "-"}</p>
           </div>
           <div className={styles.detailRow}>
-            <span>Email</span>
-            <p>{profile.email || "Hidden"}</p>
+            <span>Member since</span>
+            <p>{formatDate(profile.memberSince || profile.createdAt || profile.joinedAt || profile.created)}</p>
           </div>
           <div className={styles.detailRow}>
-            <span>Member since</span>
-            <p>{formatDate(profile.createdAt || profile.joinedAt || profile.created)}</p>
+            <span>Email</span>
+            <p>{profile.email || "Hidden"}</p>
           </div>
           <div className={styles.detailRow}>
             <span>Account status</span>
@@ -206,7 +273,9 @@ export default function UserProfile() {
           {isOwnProfile ? (
             <button type="button" className={styles.primaryButton} onClick={() => navigate("/profile/edit")}>Update profile</button>
           ) : (
-            <button type="button" className={styles.primaryButton}>Send a note</button>
+            <button type="button" className={styles.primaryButton} onClick={() => setShowCompose((prev) => !prev)}>
+              {showCompose ? 'Hide composer' : 'Send a note'}
+            </button>
           )}
         </div>
       </section>

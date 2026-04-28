@@ -123,6 +123,56 @@
   flex-wrap: wrap;
 }
 
+.composePanel {
+  display: grid;
+  gap: 1rem;
+  padding: 1.8rem;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  margin-top: 1rem;
+  animation: fadeInUp 0.3s ease;
+}
+
+.composePanel label {
+  display: grid;
+  gap: 0.55rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.composePanel input,
+.composePanel textarea {
+  width: 100%;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  outline: none;
+  font: inherit;
+  resize: vertical;
+}
+
+.composePanel input:focus,
+.composePanel textarea:focus {
+  border-color: rgba(192, 132, 252, 0.75);
+  box-shadow: 0 0 0 4px rgba(192, 132, 252, 0.12);
+}
+
+.errorText {
+  color: #ffb3c3;
+  font-weight: 600;
+  margin: 0;
+}
+
+.successText {
+  color: #d8f8c8;
+  font-weight: 600;
+  margin: 0;
+}
+
 .primaryButton,
 .secondaryButton {
   border: none;

@@ -9,6 +9,8 @@ import { getData } from './dataStore.js';
 import { authRegisterUser, authLoginUser } from './implementations/auth.js';
 import { editProfile, editPassword } from './implementations/edits.js';
 import { getUserInfo } from './implementations/userInfo.js';
+import { sendMessage, getUserMessages, markMessageAsRead } from './implementations/messages.js';
+import { sendEmail } from './services/emailService.js';
 
 import { persistData } from './dataStore.js';
 import upload from "./middleware/upload.js";
@@ -30,7 +32,7 @@ app.get('/', (req, res) => {
 
 app.post('/auth/register', async (req, res) => {
   const { name, surname, username, email, password } = req.body;
-  const result = authRegisterUser(name, surname, username, email, password);
+  const result = await authRegisterUser(name, surname, username, email, password);
   if ('error' in result) {
     return res.status(400).json(result);
   }
@@ -41,7 +43,7 @@ app.post('/auth/register', async (req, res) => {
 
 app.post('/auth/login', async (req, res) => {
   const { username, password } = req.body;
-  const result = authLoginUser(username, password);
+  const result = await authLoginUser(username, password);
   if ('error' in result) {
     return res.status(400).json(result);
   }
@@ -106,7 +108,7 @@ app.post('/profile/picture', upload.single('profileImage'), async (req, res) => 
 app.post('/profile/password/change/:userid', async (req, res) => {
   const { newPassword, currentPassword } = req.body;
   const userId = parseInt(req.params.userid);
-  const result = editPassword(userId, newPassword, currentPassword);
+  const result = await editPassword(userId, newPassword, currentPassword);
   if ('error' in result) {
     return res.status(400).json(result);
   }
@@ -125,6 +127,52 @@ app.get('/users/all', (req, res) => {
       message: 'An error occurred while retrieving user data',
     });
   }
+});
+
+// Messaging routes
+app.post('/messages', async (req, res) => {
+  const { senderId, recipientId, subject, content } = req.body;
+  const result = sendMessage(senderId, recipientId, subject, content);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  await persistData();
+  
+  // Send email notification to recipient (fire and forget)
+  const data = getData();
+  const sender = data.users.find(u => u.id === senderId);
+  const recipient = data.users.find(u => u.id === recipientId);
+  
+  if (sender && recipient) {
+    const senderUsername = sender.username || sender.name || 'Someone';
+    sendEmail(
+      recipient.email,
+      `New message: ${subject}`,
+      `<p>${senderUsername} sent you a message on Fam Logs.</p>`
+    ).catch(console.error);
+  }
+  
+  return res.status(201).json(result);
+});
+
+app.get('/users/:userId/messages', (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
+  const result = getUserMessages(userId);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
+app.put('/messages/:messageId/read', async (req, res) => {
+  const messageId = parseInt(req.params.messageId, 10);
+  const { userId } = req.body;
+  const result = markMessageAsRead(messageId, parseInt(userId, 10));
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  await persistData();
+  return res.status(200).json(result);
 });
 
 // error handling middleware

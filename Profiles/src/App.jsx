@@ -8,6 +8,7 @@ import Profile from "./pages/Profile";
 import ProfileEdit from "./pages/ProfileEdit";
 import BrowseProfiles from "./pages/BrowseProfiles";
 import UserProfile from "./pages/UserProfiles";
+import Messages from "./pages/Messages";
 import ProtectedRoute from "./ProtectedRoute";
 import "./App.css";
 
@@ -54,6 +55,14 @@ function AppRoutes() {
             element={
               <ProtectedRoute>
                 <UserProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/messages"
+            element={
+              <ProtectedRoute>
+                <Messages />
               </ProtectedRoute>
             }
           />
