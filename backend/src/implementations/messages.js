@@ -1,4 +1,5 @@
 import { getData } from "../dataStore.js";
+import { sendEmail } from "../services/emailService.js";
 
 /**
  * Sends a private message between two registered users.
@@ -79,6 +80,29 @@ function sendMessage(senderId, recipientId, subject, content) {
 }
 
 /**
+ * Sends an email notification for a newly received message.
+ * @param {object} sender
+ * @param {object} recipient
+ * @param {string} subject
+ * @param {string} content
+ */
+async function notifyMessageRecipient(sender, recipient, subject, content) {
+    if (!sender?.email || !recipient?.email) {
+        return;
+    }
+
+    const senderLabel = sender.username || sender.name || "Someone";
+
+    await sendEmail(
+        recipient.email,
+        `New message: ${subject}`,
+        `<p><strong>${senderLabel}</strong> sent you a message on Fam Logs.</p>
+         <p><strong>Subject:</strong> ${subject}</p>
+         <p>${content}</p>`
+    );
+}
+
+/**
  * Returns inbox and sent messages for a user, newest first.
  * @param {number} userId
  * @returns {Promise<{inbox: object[], sent: object[]} | {error: string, message: string}>}
@@ -143,4 +167,4 @@ function markMessageAsRead(messageId, userId) {
     return { success: true };
 }
 
-export { sendMessage, getUserMessages, markMessageAsRead };
+export { sendMessage, getUserMessages, markMessageAsRead, notifyMessageRecipient };
