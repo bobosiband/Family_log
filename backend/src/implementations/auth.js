@@ -1,20 +1,23 @@
+import bcrypt from "bcrypt";
 import { getData } from "../dataStore.js";
 import { validateEmail, validateUsername, validatePasswordStrength } from "../validation.js";
 
 /**
- * 
- * @param {*} username 
- * @param {*} email 
- * @param {*} password 
- * @returns  
+ * Registers a new user with hashed password.
+ * @param {string} name 
+ * @param {string} surname 
+ * @param {string} username 
+ * @param {string} email 
+ * @param {string} password 
+ * @returns {Promise<{newUser: object} | {error: string, message: string}>}
  */
-function authRegisterUser(name, surname, username, email, password) {
+async function authRegisterUser(name = "", surname = "", username = "", email = "", password = "") {
     // console.log(username, email, password);
-    name = name.trim();
-    surname = surname.trim();
-    username = username.trim();
-    email = email.trim();
-    password = password.trim();
+  name = typeof name === "string" ? name.trim() : "";
+  surname = typeof surname === "string" ? surname.trim() : "";
+  username = typeof username === "string" ? username.trim() : "";
+  email = typeof email === "string" ? email.trim() : "";
+  password = typeof password === "string" ? password.trim() : "";
     if (name.length === 0) {
       return {
         error: "invalid name",
@@ -57,17 +60,21 @@ function authRegisterUser(name, surname, username, email, password) {
     }
     const bio = "";
     const profilePictureUrl = "/uploads/profilePictures/default.png";
-    const passwordHistory = [];
-    passwordHistory.push(password);
+    
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const passwordHistory = [hashedPassword];
+    
     const newUser = {
       id: ++data.totalusersevercreated,
       name,
       surname,
       username,
       email,
-      password,
+      password: hashedPassword,
       bio,
       profilePictureUrl,
+      memberSince: new Date().toISOString(),
       passwordHistory,
     };
     data.users.push(newUser);
@@ -75,16 +82,33 @@ function authRegisterUser(name, surname, username, email, password) {
 }
 // console.log(authRegisterUser("bongani", "bobo@gmail.com", "passwordis123@1"));
 // console.log(authRegisterUser("bongani", "bobo@gmail.com", "password123@1"));
-function authLoginUser(username, password) {
+
+/**
+ * Authenticates a user with bcrypt password comparison.
+ * @param {string} username 
+ * @param {string} password 
+ * @returns {Promise<{id: number, username: string, email: string, name: string, surname: string, bio: string, profilePictureUrl: string} | {error: string, message: string}>}
+ */
+async function authLoginUser(username, password) {
     let data = getData();
-    const user = data.users.find( (user) => user.username === username && user.password === password);
+    const user = data.users.find((user) => user.username === username);
+    
     if (!user) {
       return {
         error: "invalid credentials",
         message: "incorrrect username or password",
       }
     }
-    // find user id 
+    
+    // Compare password with hash
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    
+    if (!passwordMatch) {
+      return {
+        error: "invalid credentials",
+        message: "incorrrect username or password",
+      }
+    }
 
     return {
       id: user.id,
@@ -94,6 +118,7 @@ function authLoginUser(username, password) {
       surname: user.surname,
       bio: user.bio,
       profilePictureUrl: user.profilePictureUrl,
+      memberSince: user.memberSince,
     };
 }
 

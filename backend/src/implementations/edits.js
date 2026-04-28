@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import { getData } from '../dataStore.js';
 import { validateEmail, validatePasswordStrength, validateUsername } from '../validation.js';
 
@@ -65,11 +66,19 @@ function editProfile(userId, newName, newSurname, newUsername, newBio, newEmail)
     surname: user.surname,
     bio: user.bio,
     profilePictureUrl: user.profilePictureUrl,
+    memberSince: user.memberSince,
   };
 }
 
 // edit password
-function editPassword(userId, newPassword, currentPassword) {
+/**
+ * Changes user password with bcrypt verification and hashing.
+ * @param {number} userId 
+ * @param {string} newPassword 
+ * @param {string} currentPassword 
+ * @returns {Promise<{id: number, username: string, email: string, name: string, surname: string, bio: string, profilePictureUrl: string} | {error: string, message: string}>}
+ */
+async function editPassword(userId, newPassword, currentPassword) {
   console.log(newPassword, currentPassword, userId);
   let data = getData();
   const user = data.users.find((u) => u.id === userId);
@@ -81,33 +90,46 @@ function editPassword(userId, newPassword, currentPassword) {
     };
   }
 
-  if (currentPassword !== user.password) {
+  // Verify current password with bcrypt
+  const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!passwordMatch) {
     return {
       error: "wrong password",
       message: "incorrrect password",
     };
   }
-  // 
-  if (user.passwordHistory?.includes(newPassword)) {
+  
+  // Check if new password was used before
+  let usedBefore = false;
+  if (user.passwordHistory && Array.isArray(user.passwordHistory)) {
+    for (const hashedPassword of user.passwordHistory) {
+      const match = await bcrypt.compare(newPassword, hashedPassword);
+      if (match) {
+        usedBefore = true;
+        break;
+      }
+    }
+  }
+  
+  if (usedBefore) {
     return {
       error: "used password",
       message: "use a different password from before",
     };
   }
-  if (newPassword === user.password) {
-    return {
-      error: "same password",
-      message: "you need to provide a different password from your current password",
-    };
-  }
+  
   if (!validatePasswordStrength(newPassword)) {
     return {
       error: "weak password",
       message: "password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and two special characters"
     };
   }
-  user.password = newPassword;
-  user.passwordHistory.push(newPassword);
+  
+  // Hash and save new password
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  user.password = hashedPassword;
+  user.passwordHistory.push(hashedPassword);
+  
   return {
     id: user.id,
     username: user.username,
@@ -116,8 +138,10 @@ function editPassword(userId, newPassword, currentPassword) {
     surname: user.surname,
     bio: user.bio,
     profilePictureUrl: user.profilePictureUrl,
+    memberSince: user.memberSince,
   };
 }
+
 
 export { 
   editProfile,

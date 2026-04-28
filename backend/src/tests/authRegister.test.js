@@ -1,6 +1,5 @@
 import { authRegisterUser } from '../implementations/auth.js';
 import { getData } from '../dataStore.js';
-import e from 'express';
 
 describe('authRegisterUser', () => {
   beforeEach(() => {
@@ -10,8 +9,10 @@ describe('authRegisterUser', () => {
     data.totalusersevercreated = 0;
   });
 
-  test('successfully registers a new user', () => {
-    const result = authRegisterUser(
+  test('successfully registers a new user', async () => {
+    const result = await authRegisterUser(
+      'Valid',
+      'User',
       'validuser',
       'valid@email.com',
       'StrongP@ss!!1'
@@ -22,15 +23,18 @@ describe('authRegisterUser', () => {
       id: 1,
       username: 'validuser',
       email: 'valid@email.com',
-      password: 'StrongP@ss!!1',
     });
+    expect(result.newUser.password).not.toBe('StrongP@ss!!1');
+    expect(result.newUser).toHaveProperty('memberSince');
 
     const data = getData();
     expect(data.users).toHaveLength(1);
   });
 
-  test('fails when username is invalid', () => {
-    const result = authRegisterUser(
+  test('fails when username is invalid', async () => {
+    const result = await authRegisterUser(
+      'Valid',
+      'User',
       'x',
       'valid@email.com',
       'StrongP@ss!!1'
@@ -43,8 +47,10 @@ describe('authRegisterUser', () => {
     });
   });
 
-  test('fails when email is invalid', () => {
-    const result = authRegisterUser(
+  test('fails when email is invalid', async () => {
+    const result = await authRegisterUser(
+      'Valid',
+      'User',
       'validuser',
       'invalid-email',
       'StrongP@ss!!1'
@@ -56,8 +62,10 @@ describe('authRegisterUser', () => {
     });
   });
 
-  test('fails when password is weak', () => {
-    const result = authRegisterUser(
+  test('fails when password is weak', async () => {
+    const result = await authRegisterUser(
+      'Valid',
+      'User',
       'validuser',
       'valid@email.com',
       'password'
@@ -67,14 +75,18 @@ describe('authRegisterUser', () => {
     expect(result.error).toBe('weak password');
   });
 
-  test('fails when username already exists', () => {
-    authRegisterUser(
+  test('fails when username already exists', async () => {
+    await authRegisterUser(
+      'Duplicate',
+      'User',
       'duplicate',
       'first@email.com',
       'StrongP@ss!!1'
     );
 
-    const result = authRegisterUser(
+    const result = await authRegisterUser(
+      'Duplicate',
+      'User',
       'duplicate',
       'second@email.com',
       'StrongP@ss!!1'
@@ -86,14 +98,18 @@ describe('authRegisterUser', () => {
     });
   });
 
-  test('fails when email already exists', () => {
-    authRegisterUser(
+  test('fails when email already exists', async () => {
+    await authRegisterUser(
+      'User',
+      'One',
       'userone',
       'same@email.com',
       'StrongP@ss!!1'
     );
 
-    const result = authRegisterUser(
+    const result = await authRegisterUser(
+      'User',
+      'Two',
       'usertwo',
       'same@email.com',
       'StrongP@ss!!1'

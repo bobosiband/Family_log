@@ -15,7 +15,9 @@ const collectionName = "datastore";
 
 let data = {
     users: [],
-    totalusersevercreated: 0
+    totalusersevercreated: 0,
+    messages: [],
+    totalMessagesEverCreated: 0
 };
 
 let isConnected = false;
@@ -33,6 +35,13 @@ async function initData() {
 
   if (saved) {
     data = saved.data;
+    for (const user of data.users) {
+      if (!user.memberSince) {
+        user.memberSince = new Date().toISOString();
+      }
+    }
+    if (!data.messages) data.messages = [];
+    if (!data.totalMessagesEverCreated) data.totalMessagesEverCreated = 0;
   } else {
     await collection.insertOne({ name: "appdata", data });
   }
