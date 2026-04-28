@@ -9,8 +9,7 @@ import { getData } from './dataStore.js';
 import { authRegisterUser, authLoginUser } from './implementations/auth.js';
 import { editProfile, editPassword } from './implementations/edits.js';
 import { getUserInfo } from './implementations/userInfo.js';
-import { sendMessage, getUserMessages, markMessageAsRead } from './implementations/messages.js';
-import { sendEmail } from './services/emailService.js';
+import { sendMessage, getUserMessages, markMessageAsRead, notifyMessageRecipient } from './implementations/messages.js';
 
 import { persistData } from './dataStore.js';
 import upload from "./middleware/upload.js";
@@ -137,19 +136,13 @@ app.post('/messages', async (req, res) => {
     return res.status(400).json(result);
   }
   await persistData();
-  
-  // Send email notification to recipient (fire and forget)
+
   const data = getData();
   const sender = data.users.find(u => u.id === senderId);
   const recipient = data.users.find(u => u.id === recipientId);
-  
+
   if (sender && recipient) {
-    const senderUsername = sender.username || sender.name || 'Someone';
-    sendEmail(
-      recipient.email,
-      `New message: ${subject}`,
-      `<p>${senderUsername} sent you a message on Fam Logs.</p>`
-    ).catch(console.error);
+    await notifyMessageRecipient(sender, recipient, subject, content);
   }
   
   return res.status(201).json(result);
