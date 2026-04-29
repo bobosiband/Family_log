@@ -22,11 +22,24 @@ let data = {
 
 let isConnected = false;
 
-async function initData() {
-  if (isConnected) return;
+function normalizeDataShape(savedData = {}) {
+  return {
+    users: Array.isArray(savedData.users) ? savedData.users : [],
+    totalusersevercreated: Number.isInteger(savedData.totalusersevercreated)
+      ? savedData.totalusersevercreated
+      : 0,
+    messages: Array.isArray(savedData.messages) ? savedData.messages : [],
+    totalMessagesEverCreated: Number.isInteger(savedData.totalMessagesEverCreated)
+      ? savedData.totalMessagesEverCreated
+      : 0,
+  };
+}
 
-  await client.connect();
-  isConnected = true;
+async function initData() {
+  if (!isConnected) {
+    await client.connect();
+    isConnected = true;
+  }
 
   const db = client.db(dbName);
   const collection = db.collection(collectionName);
@@ -34,15 +47,14 @@ async function initData() {
   const saved = await collection.findOne({ name: "appdata" });
 
   if (saved) {
-    data = saved.data;
+    data = normalizeDataShape(saved.data);
     for (const user of data.users) {
       if (!user.memberSince) {
         user.memberSince = new Date().toISOString();
       }
     }
-    if (!data.messages) data.messages = [];
-    if (!data.totalMessagesEverCreated) data.totalMessagesEverCreated = 0;
   } else {
+    data = normalizeDataShape(data);
     await collection.insertOne({ name: "appdata", data });
   }
 }
@@ -53,7 +65,8 @@ async function persistData() {
 
   await collection.updateOne(
     { name: "appdata" },
-    { $set: { data } }
+    { $set: { data } },
+    { upsert: true }
   );
 }
 
