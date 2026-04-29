@@ -9,7 +9,7 @@ import { getData } from './dataStore.js';
 import { authRegisterUser, authLoginUser } from './implementations/auth.js';
 import { editProfile, editPassword } from './implementations/edits.js';
 import { getUserInfo } from './implementations/userInfo.js';
-import { sendMessage, getUserMessages, markMessageAsRead } from './implementations/messages.js';
+import { sendMessage, getUserMessages, markMessageAsRead, deleteMessageForUser } from './implementations/messages.js';
 
 import { persistData } from './dataStore.js';
 import upload from "./middleware/upload.js";
@@ -176,6 +176,20 @@ app.get('/users/:userId/messages', (req, res) => {
   if ('error' in result) {
     return res.status(400).json(result);
   }
+  return res.status(200).json({
+    ...result,
+    conversations: result.conversations || [],
+  });
+});
+
+app.delete('/messages/:messageId', async (req, res) => {
+  const messageId = parseInt(req.params.messageId, 10);
+  const { userId } = req.body;
+  const result = deleteMessageForUser(messageId, parseInt(userId, 10));
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  await persistData();
   return res.status(200).json(result);
 });
 
