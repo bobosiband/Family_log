@@ -71,12 +71,43 @@ function sendMessage(senderId, recipientId, subject, content) {
         subject: trimmedSubject,
         content: trimmedContent,
         read: false,
+        deletedFor: [],
         createdAt: new Date().toISOString()
     };
     
     data.messages.push(newMessage);
     
     return { message: newMessage };
+}
+
+function softDeleteMessageForUser(messageId, userId) {
+    const data = getData();
+    const message = data.messages.find((entry) => entry.id === messageId);
+
+    if (!message) {
+        return {
+            error: "message not found",
+            message: "message does not exist"
+        };
+    }
+
+    const isParticipant = message.senderId === userId || message.recipientId === userId;
+    if (!isParticipant) {
+        return {
+            error: "unauthorized",
+            message: "you are not allowed to delete this message"
+        };
+    }
+
+    if (!Array.isArray(message.deletedFor)) {
+        message.deletedFor = [];
+    }
+
+    if (!message.deletedFor.includes(userId)) {
+        message.deletedFor.push(userId);
+    }
+
+    return { success: true };
 }
 
 /**
@@ -102,38 +133,148 @@ async function notifyMessageRecipient(sender, recipient, subject, content) {
     );
 }
 
-/**
- * Returns inbox and sent messages for a user, newest first.
- * @param {number} userId
- * @returns {Promise<{inbox: object[], sent: object[]} | {error: string, message: string}>}
- */
-function getUserMessages(userId) {
+function decorateMessage(message, currentUserId, usersById) {
+    const sender = usersById.get(message.senderId) || {};
+    const recipient = usersById.get(message.recipientId) || {};
+
+    return {
+        id: message.id,
+        senderId: message.senderId,
+        senderUsername: sender.username || "Unknown",
+        senderName: sender.name || "",
+        recipientId: message.recipientId,
+        recipientUsername: recipient.username || "Unknown",
+        recipientName: recipient.name || "",
+        subject: message.subject,
+        content: message.content,
+        read: Boolean(message.read),
+        createdAt: message.createdAt,
+        deletedFor: Array.isArray(message.deletedFor) ? message.deletedFor : [],
+        isSentByCurrentUser: message.senderId === currentUserId,
+    };
+}
+
+function buildConversationThreads(userId) {
     const data = getData();
-    
-    // Validate user exists
-    const user = data.users.find(u => u.id === userId);
+    const user = data.users.find((entry) => entry.id === userId);
+
     if (!user) {
         return {
             error: "user not found",
             message: "user does not exist"
         };
     }
-    
-    const inbox = data.messages
-        .filter(m => m.recipientId === userId)
-        .sort((a, b) => {
-            const timeDiff = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-            return timeDiff !== 0 ? timeDiff : b.id - a.id;
+
+    const usersById = new Map(data.users.map((entry) => [entry.id, entry]));
+    const visibleMessages = data.messages
+        .filter((message) => !Array.isArray(message.deletedFor) || !message.deletedFor.includes(userId))
+        .filter((message) => message.senderId === userId || message.recipientId === userId)
+        .sort((left, right) => {
+            const timeDiff = new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime();
+            return timeDiff !== 0 ? timeDiff : left.id - right.id;
         });
-    
-    const sent = data.messages
-        .filter(m => m.senderId === userId)
-        .sort((a, b) => {
-            const timeDiff = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-            return timeDiff !== 0 ? timeDiff : b.id - a.id;
+
+    const inbox = visibleMessages
+        .filter((message) => message.recipientId === userId)
+        .map((message) => decorateMessage(message, userId, usersById))
+        .sort((left, right) => {
+            const timeDiff = new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+            return timeDiff !== 0 ? timeDiff : right.id - left.id;
         });
-    
-    return { inbox, sent };
+
+    const sent = visibleMessages
+        .filter((message) => message.senderId === userId)
+        .map((message) => decorateMessage(message, userId, usersById))
+        .sort((left, right) => {
+            const timeDiff = new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+            return timeDiff !== 0 ? timeDiff : right.id - left.id;
+        });
+
+    const threads = new Map();
+
+    for (const message of visibleMessages) {
+        const partnerId = message.senderId === userId ? message.recipientId : message.senderId;
+        const partner = usersById.get(partnerId);
+        if (!partner) continue;
+
+        const decorated = decorateMessage(message, userId, usersById);
+        const existingThread = threads.get(partnerId) || {
+            partnerId: partner.id,
+            partnerUsername: partner.username,
+            partnerName: partner.name || "",
+            partnerSurname: partner.surname || "",
+            partnerProfilePictureUrl: partner.profilePictureUrl || "",
+            unreadCount: 0,
+            lastMessageAt: message.createdAt,
+            lastMessagePreview: message.content,
+            messages: [],
+        };
+
+        existingThread.messages.push(decorated);
+
+        if (new Date(message.createdAt).getTime() >= new Date(existingThread.lastMessageAt).getTime()) {
+            existingThread.lastMessageAt = message.createdAt;
+            existingThread.lastMessagePreview = message.content;
+        }
+
+        if (message.recipientId === userId && !message.read) {
+            existingThread.unreadCount += 1;
+        }
+
+        threads.set(partnerId, existingThread);
+    }
+
+    const conversations = Array.from(threads.values())
+        .map((thread) => ({
+            ...thread,
+            messages: thread.messages.sort((left, right) => {
+                const timeDiff = new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime();
+                return timeDiff !== 0 ? timeDiff : left.id - right.id;
+            }),
+            partner: {
+                id: thread.partnerId,
+                username: thread.partnerUsername,
+                name: thread.partnerName,
+                surname: thread.partnerSurname,
+                profilePictureUrl: thread.partnerProfilePictureUrl,
+            },
+        }))
+        .sort((left, right) => {
+            const timeDiff = new Date(right.lastMessageAt).getTime() - new Date(left.lastMessageAt).getTime();
+            return timeDiff !== 0 ? timeDiff : right.partnerId - left.partnerId;
+        });
+
+    return { inbox, sent, conversations };
+}
+
+/**
+ * Returns inbox and sent messages for a user, newest first.
+ * @param {number} userId
+ * @returns {Promise<{inbox: object[], sent: object[]} | {error: string, message: string}>}
+ */
+function getUserMessages(userId) {
+    const result = buildConversationThreads(userId);
+    if ('error' in result) {
+        return result;
+    }
+
+    const response = {
+        inbox: result.inbox,
+        sent: result.sent,
+    };
+
+    Object.defineProperty(response, 'conversations', {
+        value: result.conversations,
+        enumerable: false,
+        configurable: true,
+        writable: false,
+    });
+
+    return response;
+}
+
+function deleteMessageForUser(messageId, userId) {
+    return softDeleteMessageForUser(messageId, userId);
 }
 
 /**
@@ -167,4 +308,4 @@ function markMessageAsRead(messageId, userId) {
     return { success: true };
 }
 
-export { sendMessage, getUserMessages, markMessageAsRead, notifyMessageRecipient };
+export { sendMessage, getUserMessages, markMessageAsRead, notifyMessageRecipient, deleteMessageForUser };
