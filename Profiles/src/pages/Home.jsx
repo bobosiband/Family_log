@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import styles from "./style/Home.module.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import MainPics0 from "../assets/images/MainPics0.JPG";
 import MainPics1 from "../assets/images/MainPics1.JPG";
@@ -19,6 +19,23 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [joke, setJoke] = useState(null);
   const [showPunchline, setShowPunchline] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFading, setIsFading] = useState(false);
+  const fadeTimeoutRef = useRef(null);
+
+  const advanceCarousel = (step = 2) => {
+    if (galleryImages.length === 0) return;
+
+    if (fadeTimeoutRef.current) {
+      window.clearTimeout(fadeTimeoutRef.current);
+    }
+
+    setIsFading(true);
+    fadeTimeoutRef.current = window.setTimeout(() => {
+      setCurrentIndex((value) => (value + step + galleryImages.length) % galleryImages.length);
+      setIsFading(false);
+    }, 700);
+  };
 
   useEffect(() => {
     async function loadJoke() {
@@ -40,6 +57,22 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => advanceCarousel(2), 30000);
+
+    return () => {
+      clearInterval(interval);
+      if (fadeTimeoutRef.current) {
+        window.clearTimeout(fadeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const visibleImages = [
+    galleryImages[currentIndex % galleryImages.length],
+    galleryImages[(currentIndex + 1) % galleryImages.length],
+  ];
+
   return (
     <main className={styles.home}>
       <section className={styles.hero} style={{ backgroundImage: `url(${MainPics0})` }}>
@@ -47,7 +80,7 @@ export default function Home() {
         <div className={styles.heroContent}>
           <div className={styles.heroText}>
             <span className={styles.heroBadge}>Family Log</span>
-            <h1>Hi, I’m Bongani Sibanda.</h1>
+            <h1>{user ? `Welcome back, ${user.name || user.username}.` : "Hi, I'm Bongani Sibanda."}</h1>
             <p>
               A struggling UNSW student trying to build something real with late-night code, random inspiration, and a family story worth holding onto.
             </p>
@@ -119,12 +152,39 @@ export default function Home() {
           </div>
         </div>
 
-        <div className={styles.galleryGrid}>
-          {galleryImages.map((src, index) => (
-            <div key={index} className={styles.galleryTile}>
-              <img src={src} alt="" loading="lazy" />
+        <div className={styles.carouselWrapper}>
+          <div className={`${styles.carouselTrack} ${isFading ? styles.fading : ""}`}>
+            {visibleImages.map((src, index) => (
+              <div key={`${currentIndex}-${index}`} className={styles.galleryTile}>
+                <img src={src} alt="Family moment" loading="lazy" />
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.carouselControls}>
+            <button type="button" className={styles.carouselArrow} onClick={() => advanceCarousel(-2)} aria-label="Previous images">
+              ‹
+            </button>
+
+            <div className={styles.carouselDots} aria-label="Carousel position">
+              {galleryImages.map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  className={`${styles.carouselDot} ${currentIndex === index ? styles.active : ""}`}
+                  onClick={() => {
+                    if (index === currentIndex) return;
+                    advanceCarousel(index - currentIndex);
+                  }}
+                  aria-label={`Go to carousel position ${index + 1}`}
+                />
+              ))}
             </div>
-          ))}
+
+            <button type="button" className={styles.carouselArrow} onClick={() => advanceCarousel(2)} aria-label="Next images">
+              ›
+            </button>
+          </div>
         </div>
       </section>
 
