@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import styles from "./style/Home.module.css";
 import { useEffect, useRef, useState } from "react";
+import { Users, UserCircle, Pencil, Settings } from "lucide-react";
 
 import MainPics0 from "../assets/images/MainPics0.JPG";
 import MainPics1 from "../assets/images/MainPics1.JPG";
@@ -25,11 +26,7 @@ export default function Home() {
 
   const advanceCarousel = (step = 2) => {
     if (galleryImages.length === 0) return;
-
-    if (fadeTimeoutRef.current) {
-      window.clearTimeout(fadeTimeoutRef.current);
-    }
-
+    if (fadeTimeoutRef.current) window.clearTimeout(fadeTimeoutRef.current);
     setIsFading(true);
     fadeTimeoutRef.current = window.setTimeout(() => {
       setCurrentIndex((value) => (value + step + galleryImages.length) % galleryImages.length);
@@ -51,7 +48,6 @@ export default function Home() {
         setLoading(false);
       }
     }
-
     loadJoke();
     const interval = setInterval(loadJoke, 35000);
     return () => clearInterval(interval);
@@ -59,12 +55,9 @@ export default function Home() {
 
   useEffect(() => {
     const interval = setInterval(() => advanceCarousel(2), 30000);
-
     return () => {
       clearInterval(interval);
-      if (fadeTimeoutRef.current) {
-        window.clearTimeout(fadeTimeoutRef.current);
-      }
+      if (fadeTimeoutRef.current) window.clearTimeout(fadeTimeoutRef.current);
     };
   }, []);
 
@@ -80,9 +73,11 @@ export default function Home() {
         <div className={styles.heroContent}>
           <div className={styles.heroText}>
             <span className={styles.heroBadge}>Family Log</span>
-            <h1>{user ? `Welcome back, ${user.name || user.username}.` : "Hi, I'm Bongani Sibanda."}</h1>
+            <h1>{user ? `Welcome back, ${user.name || user.username}.` : "Family Log"}</h1>
             <p>
-              A struggling UNSW student trying to build something real with late-night code, random inspiration, and a family story worth holding onto.
+              {user
+                ? "Your family stories are here."
+                : "A shared space for family profiles, memories, and messages."}
             </p>
             <div className={styles.ctaRow}>
               {user ? (
@@ -95,51 +90,16 @@ export default function Home() {
                 </Link>
               )}
               <Link to={user ? "/profile" : "/login"} className={styles.secondaryButton}>
-                {user ? "View My Profile" : "Login"}
+                {user ? "My Profile" : "Log in"}
               </Link>
             </div>
           </div>
 
           <div className={styles.heroCard}>
             <div className={styles.heroInfo}>
-              <h2>Trying to make family memory sharing less awkward.</h2>
-              <p>
-                All the Good Children Will definitely touch good Carbons.
-              </p>
+              <h2>Keep the family close.</h2>
+              <p>Profiles, messages, and memories — all in one place.</p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.aboutSection}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <p className={styles.sectionLabel}>About Me</p>
-            <h2>Nothing to know about me 😭😭😭 </h2>
-          </div>
-        </div>
-
-        <div className={styles.aboutGrid}>
-          <div className={styles.aboutCopy}>
-            <div className={styles.aboutBlock}>
-              <h3>Bongani Sibanda</h3>
-              <p>
-                Ashkryne the Panganoi at a sbejeje level.
-              </p>
-            </div>
-            <div className={styles.aboutBlock}>
-              <h3>All Good Children ....</h3>
-            </div>
-            <div className={styles.aboutBlock}>
-              <h3>My vibe</h3>
-              <p>
-                Honest, a little tired, but still here for the story. I want this to feel easy to use and not too serious.
-              </p>
-            </div>
-          </div>
-
-          <div className={styles.aboutImage}>
-            <img src={MainPics3} alt="Desk with notes and a laptop" loading="lazy" />
           </div>
         </div>
       </section>
@@ -163,7 +123,7 @@ export default function Home() {
 
           <div className={styles.carouselControls}>
             <button type="button" className={styles.carouselArrow} onClick={() => advanceCarousel(-2)} aria-label="Previous images">
-              ‹
+              &#8249;
             </button>
 
             <div className={styles.carouselDots} aria-label="Carousel position">
@@ -176,13 +136,13 @@ export default function Home() {
                     if (index === currentIndex) return;
                     advanceCarousel(index - currentIndex);
                   }}
-                  aria-label={`Go to carousel position ${index + 1}`}
+                  aria-label={`Go to image ${index + 1}`}
                 />
               ))}
             </div>
 
             <button type="button" className={styles.carouselArrow} onClick={() => advanceCarousel(2)} aria-label="Next images">
-              ›
+              &#8250;
             </button>
           </div>
         </div>
@@ -191,8 +151,7 @@ export default function Home() {
       <section className={styles.highlightSection} style={{ backgroundImage: `url(${MainPics7})` }}>
         <div className={styles.highlightOverlay} />
         <div className={styles.highlightContent}>
-          <p className={styles.sectionLabel}></p>
-          <h2>Because it’s nicer to keep family close than to forget the good stuff.</h2>
+          <h2>Because it&apos;s nicer to keep family close than to forget the good stuff.</h2>
         </div>
       </section>
 
@@ -200,14 +159,14 @@ export default function Home() {
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionLabel}>Spark</p>
-            <h2>Small laugh, then back to the serious stuff.</h2>
+            <h2>A small laugh.</h2>
           </div>
         </div>
 
         <div className={styles.sparkCard}>
           <div className={styles.sparkHeader}>
-            <h3>Family log joke of the moment</h3>
-            <span>Tap the card to reveal the punchline, or refresh it for a new one.</span>
+            <h3>Joke of the moment</h3>
+            <span>Tap to reveal the punchline.</span>
           </div>
 
           {loading || !joke ? (
@@ -236,7 +195,7 @@ export default function Home() {
                 .catch((err) => console.error(err));
             }}
           >
-            Refresh spark
+            New joke
           </button>
         </div>
       </section>
@@ -244,37 +203,37 @@ export default function Home() {
       <section className={styles.actionsSection}>
         <div className={styles.sectionHeader}>
           <div>
-            <p className={styles.sectionLabel}>Quick navigation</p>
-            <h2>Jump to the actions you use most</h2>
+            <p className={styles.sectionLabel}>Quick actions</p>
+            <h2>Jump to what you need</h2>
           </div>
         </div>
 
         <div className={styles.actionsGrid}>
           <Link to="/browse" className={styles.actionCard}>
-            <span>🔎</span>
+            <Users size={20} strokeWidth={2} />
             <div>
               <h3>Browse Profiles</h3>
-              <p>Explore the community.</p>
+              <p>Find family members.</p>
             </div>
           </Link>
           <Link to="/profile" className={styles.actionCard}>
-            <span>👤</span>
+            <UserCircle size={20} strokeWidth={2} />
             <div>
-              <h3>View My Profile</h3>
-              <p>View your profile information.</p>
+              <h3>My Profile</h3>
+              <p>View your profile.</p>
             </div>
           </Link>
           <Link to="/profile/edit" className={styles.actionCard}>
-            <span>✏️</span>
+            <Pencil size={20} strokeWidth={2} />
             <div>
-              <h3>Edit My Profile</h3>
-              <p>Keep your profile fresh.</p>
+              <h3>Edit Profile</h3>
+              <p>Keep your info current.</p>
             </div>
           </Link>
           <Link to="/profile" className={styles.actionCard}>
-            <span>⚙️</span>
+            <Settings size={20} strokeWidth={2} />
             <div>
-              <h3>Account Settings</h3>
+              <h3>Settings</h3>
               <p>Manage your account.</p>
             </div>
           </Link>

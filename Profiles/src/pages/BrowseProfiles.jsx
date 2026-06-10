@@ -1,5 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { Search } from "lucide-react";
+import { motion } from "motion/react";
 import { api } from "../lib/api";
 import styles from "./style/BrowseProfiles.module.css";
 
@@ -76,10 +78,7 @@ export default function BrowseProfiles() {
       <div className={styles.pageHeader}>
         <div>
           <p className={styles.pageLabel}>Browse profiles</p>
-          <h1>Find the people who matter most.</h1>
-          <p className={styles.pageDescription}>
-            Search and sort family members by name or join date.
-          </p>
+          <h1>Browse profiles</h1>
         </div>
       </div>
 
@@ -87,7 +86,7 @@ export default function BrowseProfiles() {
         <div className={styles.searchControl}>
           <label htmlFor="profile-search">Search profiles</label>
           <div className={styles.searchBox}>
-            <span>🔍</span>
+            <Search size={16} strokeWidth={2} className={styles.searchIcon} />
             <input
               id="profile-search"
               type="search"
@@ -136,11 +135,15 @@ export default function BrowseProfiles() {
           </div>
         ) : (
           <div className={styles.profileGrid}>
-            {visibleProfiles.map((profile) => (
-              <article
+            {visibleProfiles.map((profile, i) => (
+              <motion.article
                 key={profile.username || profile._id || profile.name}
                 className={styles.card}
                 onClick={() => navigate(`/browse/${profile.username}`)}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05, duration: 0.24 }}
+                whileHover={{ y: -4, boxShadow: "0 16px 40px rgba(21,8,38,0.14)" }}
               >
                 <div className={styles.cardTop}>
                   <img
@@ -171,7 +174,7 @@ export default function BrowseProfiles() {
                     </button>
                   </div>
                 </div>
-              </article>
+              </motion.article>
             ))}
           </div>
         )}

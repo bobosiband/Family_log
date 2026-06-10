@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "motion/react";
 import { useAuth } from "../AuthContext";
 import { api } from "../lib/api";
 import styles from "./style/Profile.module.css";
@@ -42,8 +43,7 @@ export default function Profile() {
   const { user, logout, refreshUser } = useAuth();
   const navigate = useNavigate();
 
-  const [pictureFile, setPictureFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [picture, setPicture] = useState({ file: null, url: null });
   const [pictureStatus, setPictureStatus] = useState({ loading: false, success: "", error: "" });
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
@@ -53,11 +53,8 @@ export default function Profile() {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    if (!pictureFile) return;
-    const url = URL.createObjectURL(pictureFile);
-    setPreviewUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [pictureFile]);
+    return () => { if (picture.url) URL.revokeObjectURL(picture.url); };
+  }, [picture.url]);
 
   const completion = useMemo(() => calculateCompletion(user), [user]);
   const accountStatus = user?.status || "Active";
@@ -75,20 +72,21 @@ export default function Profile() {
       setPictureStatus({ loading: false, success: "", error: "Image must be smaller than 4MB." });
       return;
     }
-    setPictureFile(file);
+    const url = URL.createObjectURL(file);
+    setPicture({ file, url });
     setPictureStatus({ loading: false, success: "", error: "" });
   };
 
   const handlePictureUpload = async () => {
-    if (!pictureFile || !user) return;
+    if (!picture.file || !user) return;
     setPictureStatus({ loading: true, success: "", error: "" });
     const formData = new FormData();
-    formData.append("profileImage", pictureFile);
+    formData.append("profileImage", picture.file);
 
     try {
       const data = await api.post("/profile/picture", formData);
       refreshUser(data);
-      setPictureFile(null);
+      setPicture({ file: null, url: null });
       setPictureStatus({ loading: false, success: "Profile picture updated.", error: "" });
     } catch (err) {
       setPictureStatus({ loading: false, success: "", error: err.message || "Unable to upload image." });
@@ -147,7 +145,7 @@ export default function Profile() {
           <div className={styles.profileCard}>
             <div className={styles.avatarWrapper}>
               <img
-                src={previewUrl || user.profilePictureUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent((user.name || user.username || 'U'))}&background=c084fc&color=fff&size=240`}
+                src={picture.url || user.profilePictureUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent((user.name || user.username || 'U'))}&background=c084fc&color=fff&size=240`}
                 alt={user.username}
                 className={styles.avatar}
               />
@@ -177,10 +175,24 @@ export default function Profile() {
               <p className={styles.profileBio}>{user.bio || "No bio yet."}</p>
 
               <div className={styles.heroActions}>
-                <button className={styles.primaryButton} onClick={() => navigate("/profile/edit")}>Edit profile</button>
-                <button className={styles.secondaryButton} onClick={() => setShowPasswordForm((prev) => !prev)}>
+                <motion.button
+                  className={styles.primaryButton}
+                  onClick={() => navigate("/profile/edit")}
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                >
+                  Edit profile
+                </motion.button>
+                <motion.button
+                  className={styles.secondaryButton}
+                  onClick={() => setShowPasswordForm((prev) => !prev)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                >
                   {showPasswordForm ? "Hide password form" : "Change password"}
-                </button>
+                </motion.button>
               </div>
 
               <div className={styles.completionRow}>
@@ -234,11 +246,11 @@ export default function Profile() {
           </div>
         </section>
 
-        {pictureFile && (
+        {picture.file && (
           <section className={styles.uploadSection}>
             <div className={styles.uploadPreview}>
               <div className={styles.uploadLabel}>Preview</div>
-              <img src={previewUrl} alt="Preview" />
+              <img src={picture.url} alt="Preview" />
             </div>
             <div className={styles.uploadControls}>
               {pictureStatus.error && <p className={styles.errorText}>{pictureStatus.error}</p>}
@@ -255,8 +267,7 @@ export default function Profile() {
                 type="button"
                 className={styles.tertiaryButton}
                 onClick={() => {
-                  setPictureFile(null);
-                  setPreviewUrl(null);
+                  setPicture({ file: null, url: null });
                   setPictureStatus({ loading: false, success: "", error: "" });
                 }}
               >

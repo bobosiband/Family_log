@@ -81,8 +81,9 @@
   box-shadow: var(--shadow-soft);
 }
 
-.searchBox span {
-  font-size: 1.05rem;
+.searchIcon {
+  color: var(--text-muted);
+  flex-shrink: 0;
 }
 
 .searchBox input {

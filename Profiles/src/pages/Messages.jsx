@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "../AuthContext";
 import { api } from "../lib/api";
 import styles from "./style/Messages.module.css";
@@ -59,8 +60,24 @@ function ComposeModal({ users, currentUserId, onClose, onSent }) {
   const recipients = users.filter((u) => getId(u) !== currentUserId);
 
   return (
-    <div className={styles.modalBackdrop} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="compose-title">
+    <motion.div
+      className={styles.modalBackdrop}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18 }}
+    >
+      <motion.div
+        className={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="compose-title"
+        initial={{ opacity: 0, scale: 0.95, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 8 }}
+        transition={{ type: 'spring', stiffness: 360, damping: 28 }}
+      >
         <div className={styles.modalHeader}>
           <h2 id="compose-title">New message</h2>
           <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close">
@@ -118,13 +135,20 @@ function ComposeModal({ users, currentUserId, onClose, onSent }) {
             <button type="button" className={styles.ghostBtn} onClick={onClose} disabled={sending}>
               Cancel
             </button>
-            <button type="submit" className={styles.sendBtn} disabled={sending}>
+            <motion.button
+              type="submit"
+              className={styles.sendBtn}
+              disabled={sending}
+              whileHover={sending ? {} : { scale: 1.03, y: -1 }}
+              whileTap={sending ? {} : { scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+            >
               {sending ? "Sending..." : "Send"}
-            </button>
+            </motion.button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -338,13 +362,16 @@ export default function Messages() {
             <p className={styles.kicker}>Messages</p>
             <h1>Your mail</h1>
           </div>
-          <button
+          <motion.button
             type="button"
             className={styles.composeBtn}
             onClick={() => setShowCompose(true)}
+            whileHover={{ scale: 1.04, y: -2 }}
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 22 }}
           >
             Compose
-          </button>
+          </motion.button>
         </div>
 
         {error && <p className={styles.errorBanner}>{error}</p>}
@@ -366,67 +393,114 @@ export default function Messages() {
 
         <div role="tabpanel">
           {tab === "inbox" && (
-            <div className={styles.list}>
-              {data.inbox.length === 0 ? (
-                <p className={styles.emptyState}>No messages in your inbox.</p>
-              ) : (
-                data.inbox.map((msg) => (
-                  <MessageItem
-                    key={msg.id || msg._id}
-                    message={msg}
-                    isSent={false}
-                    onDelete={handleDelete}
-                    onMarkRead={handleMarkRead}
-                  />
-                ))
-              )}
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key="inbox"
+                className={styles.list}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+              >
+                {data.inbox.length === 0 ? (
+                  <p className={styles.emptyState}>No messages in your inbox.</p>
+                ) : (
+                  data.inbox.map((msg, i) => (
+                    <motion.div
+                      key={msg.id || msg._id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.04, duration: 0.22 }}
+                    >
+                      <MessageItem
+                        message={msg}
+                        isSent={false}
+                        onDelete={handleDelete}
+                        onMarkRead={handleMarkRead}
+                      />
+                    </motion.div>
+                  ))
+                )}
+              </motion.div>
+            </AnimatePresence>
           )}
 
           {tab === "sent" && (
-            <div className={styles.list}>
-              {data.sent.length === 0 ? (
-                <p className={styles.emptyState}>No sent messages yet.</p>
-              ) : (
-                data.sent.map((msg) => (
-                  <MessageItem
-                    key={msg.id || msg._id}
-                    message={msg}
-                    isSent={true}
-                    onDelete={handleDelete}
-                    onMarkRead={handleMarkRead}
-                  />
-                ))
-              )}
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key="sent"
+                className={styles.list}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+              >
+                {data.sent.length === 0 ? (
+                  <p className={styles.emptyState}>No sent messages yet.</p>
+                ) : (
+                  data.sent.map((msg, i) => (
+                    <motion.div
+                      key={msg.id || msg._id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.04, duration: 0.22 }}
+                    >
+                      <MessageItem
+                        message={msg}
+                        isSent={true}
+                        onDelete={handleDelete}
+                        onMarkRead={handleMarkRead}
+                      />
+                    </motion.div>
+                  ))
+                )}
+              </motion.div>
+            </AnimatePresence>
           )}
 
           {tab === "conversations" && (
-            <div className={styles.list}>
-              {data.conversations.length === 0 ? (
-                <p className={styles.emptyState}>No conversations yet.</p>
-              ) : (
-                data.conversations.map((thread) => (
-                  <ConversationThread
-                    key={thread.partnerId || thread.partnerUsername}
-                    thread={thread}
-                    currentUserId={userId}
-                  />
-                ))
-              )}
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key="conversations"
+                className={styles.list}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+              >
+                {data.conversations.length === 0 ? (
+                  <p className={styles.emptyState}>No conversations yet.</p>
+                ) : (
+                  data.conversations.map((thread, i) => (
+                    <motion.div
+                      key={thread.partnerId || thread.partnerUsername}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.04, duration: 0.22 }}
+                    >
+                      <ConversationThread
+                        thread={thread}
+                        currentUserId={userId}
+                      />
+                    </motion.div>
+                  ))
+                )}
+              </motion.div>
+            </AnimatePresence>
           )}
         </div>
       </div>
 
-      {showCompose && (
-        <ComposeModal
-          users={users}
-          currentUserId={userId}
-          onClose={() => setShowCompose(false)}
-          onSent={fetchMessages}
-        />
-      )}
+      <AnimatePresence>
+        {showCompose && (
+          <ComposeModal
+            users={users}
+            currentUserId={userId}
+            onClose={() => setShowCompose(false)}
+            onSent={fetchMessages}
+          />
+        )}
+      </AnimatePresence>
     </main>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'motion/react';
 import { useAuth } from '../AuthContext';
 import { api } from '../lib/api';
 import styles from './style/Register.module.css';
@@ -145,9 +146,16 @@ export default function Register() {
           />
         </div>
 
-        <button type="submit" className={styles.submitBtn} disabled={loading}>
-          {loading ? 'Registering…' : 'Register'}
-        </button>
+        <motion.button
+          type="submit"
+          className={styles.submitBtn}
+          disabled={loading}
+          whileHover={loading ? {} : { scale: 1.02, y: -2 }}
+          whileTap={loading ? {} : { scale: 0.97 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+        >
+          {loading ? 'Registering...' : 'Register'}
+        </motion.button>
 
         {statusMessage && (
           <div className={`${styles.statusMessage} ${styles[statusType]}`} role="status" aria-live="polite">

@@ -2,6 +2,8 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { api } from '../lib/api';
 import { useState, useEffect } from 'react';
+import { X, Menu } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import styles from './navbar.module.css';
 
 export default function Navbar() {
@@ -11,7 +13,7 @@ export default function Navbar() {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user) return;
 
     async function fetchUnreadCount() {
       try {
@@ -20,17 +22,15 @@ export default function Navbar() {
         if (data.inbox) {
           setUnreadCount(data.inbox.filter(m => !m.read).length);
         }
-      } catch (err) {
-        console.error('Failed to fetch unread count:', err);
+      } catch {
+        // silent
       }
     }
 
     fetchUnreadCount();
     const interval = setInterval(fetchUnreadCount, 60000);
     return () => clearInterval(interval);
-  }, [user?.id]);
-  
-  // TODO: replace polling with Socket.IO
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -42,43 +42,48 @@ export default function Navbar() {
 
   return (
     <>
-      <button
+      <motion.button
         className={styles.hamburgerButton}
         onClick={toggleMobileMenu}
         aria-label="Toggle navigation"
         type="button"
+        whileTap={{ scale: 0.92 }}
       >
         <span />
         <span />
         <span />
-      </button>
+      </motion.button>
 
-      {open && (
-        <div
-          className={styles.mobileOverlay}
-          onClick={closeMobileMenu}
-          aria-hidden="true"
-        />
-      )}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            className={styles.mobileOverlay}
+            onClick={closeMobileMenu}
+            aria-hidden="true"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
+        )}
+      </AnimatePresence>
 
       <aside className={`${styles.sidebar} ${open ? styles.mobileOpen : ''}`}>
         <div className={styles.brand}>
-          <div
-            className={styles.logo}
-            onClick={() => {
-              navigate('/');
-              closeMobileMenu();
-            }}
+          <button
+            className={styles.logoBtn}
+            onClick={() => { navigate('/'); closeMobileMenu(); }}
+            type="button"
           >
-            Fam Logs
-          </div>
+            FamLogs
+          </button>
           <button
             className={styles.closeButton}
             onClick={closeMobileMenu}
             aria-label="Close menu"
             type="button"
           >
-            ✕
+            <X size={16} strokeWidth={2.5} />
           </button>
         </div>
 
@@ -87,9 +92,7 @@ export default function Navbar() {
 
           <NavLink
             to="/"
-            className={({ isActive }) =>
-              isActive ? `${styles.link} ${styles.active}` : styles.link
-            }
+            className={({ isActive }) => isActive ? `${styles.link} ${styles.active}` : styles.link}
             onClick={closeMobileMenu}
           >
             Home
@@ -97,9 +100,7 @@ export default function Navbar() {
 
           <NavLink
             to="/browse"
-            className={({ isActive }) =>
-              isActive ? `${styles.link} ${styles.active}` : styles.link
-            }
+            className={({ isActive }) => isActive ? `${styles.link} ${styles.active}` : styles.link}
             onClick={closeMobileMenu}
           >
             Browse Profiles
@@ -109,27 +110,24 @@ export default function Navbar() {
             <>
               <NavLink
                 to="/profile"
-                className={({ isActive }) =>
-                  isActive ? `${styles.link} ${styles.active}` : styles.link
-                }
+                className={({ isActive }) => isActive ? `${styles.link} ${styles.active}` : styles.link}
                 onClick={closeMobileMenu}
               >
                 My Profile
               </NavLink>
               <NavLink
                 to="/messages"
-                className={({ isActive }) =>
-                  isActive ? `${styles.link} ${styles.active}` : styles.link
-                }
+                className={({ isActive }) => isActive ? `${styles.link} ${styles.active}` : styles.link}
                 onClick={closeMobileMenu}
               >
-                Messages {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
+                Messages
+                {unreadCount > 0 && (
+                  <span className={styles.badge}>{unreadCount}</span>
+                )}
               </NavLink>
               <NavLink
                 to="/profile/edit"
-                className={({ isActive }) =>
-                  isActive ? `${styles.link} ${styles.active}` : styles.link
-                }
+                className={({ isActive }) => isActive ? `${styles.link} ${styles.active}` : styles.link}
                 onClick={closeMobileMenu}
               >
                 Edit Profile
@@ -141,18 +139,14 @@ export default function Navbar() {
             <>
               <NavLink
                 to="/login"
-                className={({ isActive }) =>
-                  isActive ? `${styles.link} ${styles.active}` : styles.link
-                }
+                className={({ isActive }) => isActive ? `${styles.link} ${styles.active}` : styles.link}
                 onClick={closeMobileMenu}
               >
-                Login
+                Log in
               </NavLink>
               <NavLink
                 to="/register"
-                className={({ isActive }) =>
-                  isActive ? `${styles.link} ${styles.active}` : styles.link
-                }
+                className={({ isActive }) => isActive ? `${styles.link} ${styles.active}` : styles.link}
                 onClick={closeMobileMenu}
               >
                 Register
@@ -163,32 +157,36 @@ export default function Navbar() {
 
         {user && (
           <div className={styles.footer}>
-            <div className={styles.profilePreview} onClick={() => {
-              navigate('/profile');
-              closeMobileMenu();
-            }}>
+            <button
+              type="button"
+              className={styles.profilePreview}
+              onClick={() => { navigate('/profile'); closeMobileMenu(); }}
+            >
               {user.profilePictureUrl ? (
                 <img
                   src={user.profilePictureUrl}
-                  alt="User"
+                  alt={user.username}
                   className={styles.profileAvatar}
                 />
               ) : (
                 <div className={styles.avatarPlaceholder}>
-                  {user.username[0].toUpperCase()}
+                  {(user.username || 'U')[0].toUpperCase()}
                 </div>
               )}
               <div className={styles.profileDetails}>
                 <span>{user.username}</span>
                 <small>Family member</small>
               </div>
-            </div>
-            <button className={styles.logoutBtn} onClick={() => {
-              handleLogout();
-              closeMobileMenu();
-            }}>
-              Logout
             </button>
+            <motion.button
+              type="button"
+              className={styles.logoutBtn}
+              onClick={() => { handleLogout(); closeMobileMenu(); }}
+              whileHover={{ scale: 1.02, filter: 'brightness(1.06)' }}
+              whileTap={{ scale: 0.97 }}
+            >
+              Log out
+            </motion.button>
           </div>
         )}
       </aside>

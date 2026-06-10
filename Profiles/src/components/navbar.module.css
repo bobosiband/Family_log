@@ -21,13 +21,17 @@
   gap: 1rem;
 }
 
-.logo {
+.logo,
+.logoBtn {
   font-size: 1.4rem;
   font-weight: 800;
   color: #f8fbff;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.16em;
+  background: none;
+  border: none;
+  padding: 0;
 }
 
 .burger {
