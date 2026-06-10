@@ -3,10 +3,11 @@ import { getData } from '../dataStore.js';
 import { validateEmail, validatePasswordStrength, validateUsername } from '../validation.js';
 
 function editProfile(userId, newName, newSurname, newUsername, newBio, newEmail) {
-  newName = newName.trim();
-  newSurname = newSurname.trim();
-  newUsername = newUsername.trim();
-  newEmail = newEmail.trim();
+  newName = typeof newName === "string" ? newName.trim() : "";
+  newSurname = typeof newSurname === "string" ? newSurname.trim() : "";
+  newUsername = typeof newUsername === "string" ? newUsername.trim() : "";
+  newBio = typeof newBio === "string" ? newBio.trim() : "";
+  newEmail = typeof newEmail === "string" ? newEmail.trim() : "";
   if (newName.length === 0) {
     return {
       error: "invalid name",
@@ -54,7 +55,7 @@ function editProfile(userId, newName, newSurname, newUsername, newBio, newEmail)
   user.name = newName;
   user.surname = newSurname;
   user.username = newUsername;
-  user.bio = newBio;
+  user.bio = newBio;  // already trimmed to "" if missing/non-string
   user.email = newEmail;
   
   return {
