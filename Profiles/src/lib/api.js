@@ -25,7 +25,18 @@ async function request(path, options = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${BASE}${path}`, { ...options, headers });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15_000);
+
+  let res;
+  try {
+    res = await fetch(`${BASE}${path}`, { ...options, headers, signal: controller.signal });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') throw new Error('Request timed out. Please check your connection and try again.');
+    throw err;
+  }
+  clearTimeout(timeoutId);
 
   if (res.status === 401) {
     clearSession();
