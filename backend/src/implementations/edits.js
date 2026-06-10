@@ -97,7 +97,15 @@ async function editPassword(userId, newPassword, currentPassword) {
       message: "incorrrect password",
     };
   }
-  
+
+  // Check strength before history to avoid unnecessary bcrypt comparisons
+  if (!validatePasswordStrength(newPassword)) {
+    return {
+      error: "weak password",
+      message: "password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and two special characters"
+    };
+  }
+
   // Check if new password was used before
   let usedBefore = false;
   if (user.passwordHistory && Array.isArray(user.passwordHistory)) {
@@ -109,18 +117,11 @@ async function editPassword(userId, newPassword, currentPassword) {
       }
     }
   }
-  
+
   if (usedBefore) {
     return {
       error: "used password",
       message: "use a different password from before",
-    };
-  }
-  
-  if (!validatePasswordStrength(newPassword)) {
-    return {
-      error: "weak password",
-      message: "password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and two special characters"
     };
   }
   
