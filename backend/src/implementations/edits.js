@@ -33,7 +33,6 @@ function editProfile(userId, newName, newSurname, newUsername, newBio, newEmail)
     }
   }
   let data = getData();
-  // console.log({userId, newName, newSurname, newUsername, newBio, newEmail});
   const user = data.users.find((u) => u.id === userId);
   
   if (!user) {

@@ -1,5 +1,3 @@
-// import { getData } from './dataStore.js';
-
 function validatePasswordStrength(password) {
     password = typeof password === "string" ? password.trim() : "";
     if (password.length < 8) {
@@ -24,21 +22,15 @@ function validatePasswordStrength(password) {
     return true;
 }
 
-// console.log(validatePasswordStrength("Password12@1!#"));
- function validateEmail(email) {
-    // simple email regex 
+function validateEmail(email) {
     const emailregex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailregex.test(email);
 }
 
 function validateUsername(username) {
-    // username must be alphanumeric and between 3 and 30 characters
     const usernameregex = /^[a-zA-Z0-9]{3,30}$/;
     return usernameregex.test(username.trim());
 }
-// console.log(validateEmail("bobosibanda35gail.com"));
-
-// console.log(validateUsername("bs1 "));
 
 export {
     validateEmail,

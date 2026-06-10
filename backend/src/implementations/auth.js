@@ -18,7 +18,6 @@ function isBcryptHash(value) {
  * @returns {Promise<{newUser: object} | {error: string, message: string}>}
  */
 async function authRegisterUser(name = "", surname = "", username = "", email = "", password = "") {
-    // console.log(username, email, password);
   name = typeof name === "string" ? name.trim() : "";
   surname = typeof surname === "string" ? surname.trim() : "";
   username = typeof username === "string" ? username.trim() : "";
@@ -87,8 +86,6 @@ async function authRegisterUser(name = "", surname = "", username = "", email = 
     const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     return { newUser: sanitizeUser(newUser), token };
 }
-// console.log(authRegisterUser("bongani", "bobo@gmail.com", "passwordis123@1"));
-// console.log(authRegisterUser("bongani", "bobo@gmail.com", "password123@1"));
 
 /**
  * Authenticates a user with bcrypt password comparison.
