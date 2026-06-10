@@ -1,10 +1,9 @@
 import { getData } from "../dataStore.js";
+import { sanitizeUser } from "../utils/sanitize.js";
 
 function getUserInfo() {
-    let data = getData();
-    // filter out password and password history
-    const users = data.users.map(({ password, passwordHistory, ...rest }) => rest);
-    return users;
+  let data = getData();
+  return data.users.map(sanitizeUser);
 }
 
 export { getUserInfo };

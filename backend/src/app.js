@@ -10,6 +10,7 @@ import { authRegisterUser, authLoginUser } from './implementations/auth.js';
 import { editProfile, editPassword } from './implementations/edits.js';
 import { getUserInfo } from './implementations/userInfo.js';
 import { sendMessage, getUserMessages, markMessageAsRead, deleteMessageForUser } from './implementations/messages.js';
+import { sanitizeUser } from './utils/sanitize.js';
 
 import { persistData } from './dataStore.js';
 import upload from "./middleware/upload.js";
@@ -115,7 +116,7 @@ app.post('/profile/picture', upload.single('profileImage'), async (req, res) => 
     const pictureUpdateEmail = profileUpdatedNotification(user.name, 'your profile picture was changed');
     void sendEmail(user.email, pictureUpdateEmail.subject, pictureUpdateEmail.html).catch(console.error);
 
-    return res.status(200).json(user);
+    return res.status(200).json(sanitizeUser(user));
   } catch (err) {
     return res.status(500).json({
       error: "Image upload failed",

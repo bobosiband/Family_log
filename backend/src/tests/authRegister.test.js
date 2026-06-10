@@ -24,7 +24,8 @@ describe('authRegisterUser', () => {
       username: 'validuser',
       email: 'valid@email.com',
     });
-    expect(result.newUser.password).not.toBe('StrongP@ss!!1');
+    expect(result.newUser).not.toHaveProperty('password');
+    expect(result.newUser).not.toHaveProperty('passwordHistory');
     expect(result.newUser).toHaveProperty('memberSince');
 
     const data = getData();

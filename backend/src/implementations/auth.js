@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { getData } from "../dataStore.js";
 import { validateEmail, validateUsername, validatePasswordStrength } from "../validation.js";
+import { sanitizeUser } from "../utils/sanitize.js";
 
 function isBcryptHash(value) {
   return typeof value === "string" && (value.startsWith("$2a$") || value.startsWith("$2b$"));
@@ -82,7 +83,7 @@ async function authRegisterUser(name = "", surname = "", username = "", email = 
       passwordHistory,
     };
     data.users.push(newUser);
-    return {newUser};
+    return { newUser: sanitizeUser(newUser) };
 }
 // console.log(authRegisterUser("bongani", "bobo@gmail.com", "passwordis123@1"));
 // console.log(authRegisterUser("bongani", "bobo@gmail.com", "password123@1"));
