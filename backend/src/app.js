@@ -24,6 +24,10 @@ import {
 } from './services/notificationMessages.js';
 import { sendEmail } from './services/emailService.js';
 
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET is not configured — set it in .env or Vercel environment variables before starting the server');
+}
+
 const app = express();
 
 app.use(cors());
@@ -38,48 +42,60 @@ app.get('/', (req, res) => {
   res.json({ message: 'Server running' });
 });
 
-app.post('/auth/register', async (req, res) => {
-  const { name, surname, username, email, password } = req.body;
-  const result = await authRegisterUser(name, surname, username, email, password);
-  if (result?.error) {
-    return res.status(400).json(result);
+app.post('/auth/register', async (req, res, next) => {
+  try {
+    const { name, surname, username, email, password } = req.body;
+    const result = await authRegisterUser(name, surname, username, email, password);
+    if (result?.error) {
+      return res.status(400).json(result);
+    }
+    await persistData();
+    const welcomeEmail = welcomeMessage(result.newUser.name);
+    void sendEmail(result.newUser.email, welcomeEmail.subject, welcomeEmail.html).catch(console.error);
+    return res.status(200).json(result);
+  } catch (err) {
+    next(err);
   }
-  await persistData();
-  const welcomeEmail = welcomeMessage(result.newUser.name);
-  void sendEmail(result.newUser.email, welcomeEmail.subject, welcomeEmail.html).catch(console.error);
-  return res.status(200).json(result);
 });
 
-app.post('/auth/login', async (req, res) => {
-  const { username, password } = req.body;
-  const result = await authLoginUser(username, password);
-  if (result?.error) {
-    return res.status(400).json(result);
+app.post('/auth/login', async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
+    const result = await authLoginUser(username, password);
+    if (result?.error) {
+      return res.status(400).json(result);
+    }
+    await persistData();
+    return res.status(200).json(result);
+  } catch (err) {
+    next(err);
   }
-  await persistData();
-  return res.status(200).json(result);
 });
 
-app.put('/profile/edit', authenticate, async (req, res) => {
-  const userId = req.userId;
-  const { name, surname, username, bio, email } = req.body;
-  const data = getData();
-  const existingUser = data.users.find((user) => user.id === userId);
-  const previousUser = existingUser ? { ...existingUser } : null;
-  const result = editProfile(userId, name, surname, username, bio, email);
-  if (result?.error) {
-    return res.status(400).json(result);
+app.put('/profile/edit', authenticate, async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const { name, surname, username, bio, email } = req.body;
+    const data = getData();
+    const existingUser = data.users.find((user) => user.id === userId);
+    const previousUser = existingUser ? { ...existingUser } : null;
+    const result = editProfile(userId, name, surname, username, bio, email);
+    if (result?.error) {
+      return res.status(400).json(result);
+    }
+    await persistData();
+    const changes = [];
+    if (previousUser && name !== previousUser.name) changes.push('your name was updated');
+    if (previousUser && email !== previousUser.email) changes.push('your email was updated');
+    if (previousUser && bio !== previousUser.bio) changes.push('your bio was updated');
+    if (previousUser && username !== previousUser.username) changes.push('your username was updated');
+    const changeDescription = changes.length > 0 ? changes.join(', ') : 'your profile was updated';
+    const profileUpdateEmail = profileUpdatedNotification(result.name, changeDescription);
+    void sendEmail(result.email, profileUpdateEmail.subject, profileUpdateEmail.html).catch(console.error);
+    return res.status(200).json(result);
+  } catch (err) {
+    next(err);
   }
-  await persistData();
-  const changes = [];
-  if (previousUser && name !== previousUser.name) changes.push('your name was updated');
-  if (previousUser && email !== previousUser.email) changes.push('your email was updated');
-  if (previousUser && bio !== previousUser.bio) changes.push('your bio was updated');
-  if (previousUser && username !== previousUser.username) changes.push('your username was updated');
-  const changeDescription = changes.length > 0 ? changes.join(', ') : 'your profile was updated';
-  const profileUpdateEmail = profileUpdatedNotification(result.name, changeDescription);
-  void sendEmail(result.email, profileUpdateEmail.subject, profileUpdateEmail.html).catch(console.error);
-  return res.status(200).json(result);
 });
 
 app.post('/profile/picture', authenticate, upload.single('profileImage'), async (req, res) => {
@@ -126,17 +142,21 @@ app.post('/profile/picture', authenticate, upload.single('profileImage'), async 
   }
 });
 
-app.post('/profile/password/change/:userid', authenticate, async (req, res) => {
-  const { newPassword, currentPassword } = req.body;
-  const userId = req.userId;
-  const result = await editPassword(userId, newPassword, currentPassword);
-  if (result?.error) {
-    return res.status(400).json(result);
+app.post('/profile/password/change/:userid', authenticate, async (req, res, next) => {
+  try {
+    const { newPassword, currentPassword } = req.body;
+    const userId = req.userId;
+    const result = await editPassword(userId, newPassword, currentPassword);
+    if (result?.error) {
+      return res.status(400).json(result);
+    }
+    await persistData();
+    const passwordEmail = passwordChangedNotification(result.name);
+    void sendEmail(result.email, passwordEmail.subject, passwordEmail.html).catch(console.error);
+    return res.status(200).json(result);
+  } catch (err) {
+    next(err);
   }
-  await persistData();
-  const passwordEmail = passwordChangedNotification(result.name);
-  void sendEmail(result.email, passwordEmail.subject, passwordEmail.html).catch(console.error);
-  return res.status(200).json(result);
 });
 
 app.get('/users/all', (req, res) => {
@@ -152,60 +172,76 @@ app.get('/users/all', (req, res) => {
 });
 
 // Messaging routes
-app.post('/messages', authenticate, async (req, res) => {
-  const senderId = req.userId;
-  const { recipientId, subject, content } = req.body;
-  const result = sendMessage(senderId, recipientId, subject, content);
-  if (result?.error) {
-    return res.status(400).json(result);
+app.post('/messages', authenticate, async (req, res, next) => {
+  try {
+    const senderId = req.userId;
+    const { recipientId, subject, content } = req.body;
+    const result = sendMessage(senderId, recipientId, subject, content);
+    if (result?.error) {
+      return res.status(400).json(result);
+    }
+    await persistData();
+
+    const data = getData();
+    const sender = data.users.find(u => u.id === senderId);
+    const recipient = data.users.find(u => u.id === recipientId);
+
+    if (sender && recipient) {
+      const notification = newMessageNotification(recipient.name || recipient.username, sender.username);
+      void sendEmail(recipient.email, notification.subject, notification.html).catch(console.error);
+    }
+
+    return res.status(201).json(result);
+  } catch (err) {
+    next(err);
   }
-  await persistData();
-
-  const data = getData();
-  const sender = data.users.find(u => u.id === senderId);
-  const recipient = data.users.find(u => u.id === recipientId);
-
-  if (sender && recipient) {
-    const notification = newMessageNotification(recipient.name || recipient.username, sender.username);
-    void sendEmail(recipient.email, notification.subject, notification.html).catch(console.error);
-  }
-
-  return res.status(201).json(result);
 });
 
-app.get('/users/:userId/messages', authenticate, (req, res) => {
-  const userId = req.userId;
-  const result = getUserMessages(userId);
-  if (result?.error) {
-    return res.status(400).json(result);
+app.get('/users/:userId/messages', authenticate, (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const result = getUserMessages(userId);
+    if (result?.error) {
+      return res.status(400).json(result);
+    }
+    return res.status(200).json({
+      inbox: result.inbox,
+      sent: result.sent,
+      conversations: result.conversations,
+    });
+  } catch (err) {
+    next(err);
   }
-  return res.status(200).json({
-    inbox: result.inbox,
-    sent: result.sent,
-    conversations: result.conversations,
-  });
 });
 
-app.delete('/messages/:messageId', authenticate, async (req, res) => {
-  const messageId = parseInt(req.params.messageId, 10);
-  const userId = req.userId;
-  const result = deleteMessageForUser(messageId, userId);
-  if (result?.error) {
-    return res.status(400).json(result);
+app.delete('/messages/:messageId', authenticate, async (req, res, next) => {
+  try {
+    const messageId = parseInt(req.params.messageId, 10);
+    const userId = req.userId;
+    const result = deleteMessageForUser(messageId, userId);
+    if (result?.error) {
+      return res.status(400).json(result);
+    }
+    await persistData();
+    return res.status(200).json(result);
+  } catch (err) {
+    next(err);
   }
-  await persistData();
-  return res.status(200).json(result);
 });
 
-app.put('/messages/:messageId/read', authenticate, async (req, res) => {
-  const messageId = parseInt(req.params.messageId, 10);
-  const userId = req.userId;
-  const result = markMessageAsRead(messageId, userId);
-  if (result?.error) {
-    return res.status(400).json(result);
+app.put('/messages/:messageId/read', authenticate, async (req, res, next) => {
+  try {
+    const messageId = parseInt(req.params.messageId, 10);
+    const userId = req.userId;
+    const result = markMessageAsRead(messageId, userId);
+    if (result?.error) {
+      return res.status(400).json(result);
+    }
+    await persistData();
+    return res.status(200).json(result);
+  } catch (err) {
+    next(err);
   }
-  await persistData();
-  return res.status(200).json(result);
 });
 
 // error handling middleware
