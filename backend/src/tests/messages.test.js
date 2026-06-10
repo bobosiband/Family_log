@@ -140,7 +140,7 @@ describe('getUserMessages', () => {
     await authRegisterUser('Cara', 'Doe', 'cara', 'cara@test.com', 'StrongP@ss!!1');
     const result = getUserMessages(3);
 
-    expect(result).toEqual({ inbox: [], sent: [] });
+    expect(result).toEqual({ inbox: [], sent: [], conversations: [] });
   });
 
   test('fails when user does not exist', () => {

@@ -258,19 +258,11 @@ function getUserMessages(userId) {
         return result;
     }
 
-    const response = {
+    return {
         inbox: result.inbox,
         sent: result.sent,
+        conversations: result.conversations,
     };
-
-    Object.defineProperty(response, 'conversations', {
-        value: result.conversations,
-        enumerable: false,
-        configurable: true,
-        writable: false,
-    });
-
-    return response;
 }
 
 function deleteMessageForUser(messageId, userId) {
