@@ -3,10 +3,11 @@ import { getData } from '../dataStore.js';
 import { validateEmail, validatePasswordStrength, validateUsername } from '../validation.js';
 
 function editProfile(userId, newName, newSurname, newUsername, newBio, newEmail) {
-  newName = newName.trim();
-  newSurname = newSurname.trim();
-  newUsername = newUsername.trim();
-  newEmail = newEmail.trim();
+  newName = typeof newName === "string" ? newName.trim() : "";
+  newSurname = typeof newSurname === "string" ? newSurname.trim() : "";
+  newUsername = typeof newUsername === "string" ? newUsername.trim() : "";
+  newBio = typeof newBio === "string" ? newBio.trim() : "";
+  newEmail = typeof newEmail === "string" ? newEmail.trim() : "";
   if (newName.length === 0) {
     return {
       error: "invalid name",
@@ -28,11 +29,10 @@ function editProfile(userId, newName, newSurname, newUsername, newBio, newEmail)
   if (!validateEmail(newEmail)) {
     return {
       error: "invalid email",
-      message: "email is not in the correct format)"
+      message: "email is not in the correct format"
     }
   }
   let data = getData();
-  // console.log({userId, newName, newSurname, newUsername, newBio, newEmail});
   const user = data.users.find((u) => u.id === userId);
   
   if (!user) {
@@ -44,18 +44,17 @@ function editProfile(userId, newName, newSurname, newUsername, newBio, newEmail)
   const userExists = data.users.find(
       (user) => (user.email === newEmail || user.username === newUsername) && user.id !== userId
   );
-  console.log(userExists);
   if (userExists) {
       return {
         error: "invalid credentials",
-        message: "user with that email or username already exits",
+        message: "user with that email or username already exists",
       };
   }
 
   user.name = newName;
   user.surname = newSurname;
   user.username = newUsername;
-  user.bio = newBio;
+  user.bio = newBio;  // already trimmed to "" if missing/non-string
   user.email = newEmail;
   
   return {
@@ -79,7 +78,6 @@ function editProfile(userId, newName, newSurname, newUsername, newBio, newEmail)
  * @returns {Promise<{id: number, username: string, email: string, name: string, surname: string, bio: string, profilePictureUrl: string} | {error: string, message: string}>}
  */
 async function editPassword(userId, newPassword, currentPassword) {
-  console.log(newPassword, currentPassword, userId);
   let data = getData();
   const user = data.users.find((u) => u.id === userId);
 
@@ -95,10 +93,18 @@ async function editPassword(userId, newPassword, currentPassword) {
   if (!passwordMatch) {
     return {
       error: "wrong password",
-      message: "incorrrect password",
+      message: "incorrect password",
     };
   }
-  
+
+  // Check strength before history to avoid unnecessary bcrypt comparisons
+  if (!validatePasswordStrength(newPassword)) {
+    return {
+      error: "weak password",
+      message: "password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and two special characters"
+    };
+  }
+
   // Check if new password was used before
   let usedBefore = false;
   if (user.passwordHistory && Array.isArray(user.passwordHistory)) {
@@ -110,18 +116,11 @@ async function editPassword(userId, newPassword, currentPassword) {
       }
     }
   }
-  
+
   if (usedBefore) {
     return {
       error: "used password",
       message: "use a different password from before",
-    };
-  }
-  
-  if (!validatePasswordStrength(newPassword)) {
-    return {
-      error: "weak password",
-      message: "password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and two special characters"
     };
   }
   

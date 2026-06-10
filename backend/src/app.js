@@ -10,6 +10,8 @@ import { authRegisterUser, authLoginUser } from './implementations/auth.js';
 import { editProfile, editPassword } from './implementations/edits.js';
 import { getUserInfo } from './implementations/userInfo.js';
 import { sendMessage, getUserMessages, markMessageAsRead, deleteMessageForUser } from './implementations/messages.js';
+import { sanitizeUser } from './utils/sanitize.js';
+import { authenticate } from './middleware/auth.js';
 
 import { persistData } from './dataStore.js';
 import upload from "./middleware/upload.js";
@@ -39,7 +41,7 @@ app.get('/', (req, res) => {
 app.post('/auth/register', async (req, res) => {
   const { name, surname, username, email, password } = req.body;
   const result = await authRegisterUser(name, surname, username, email, password);
-  if ('error' in result) {
+  if (result?.error) {
     return res.status(400).json(result);
   }
   await persistData();
@@ -51,21 +53,21 @@ app.post('/auth/register', async (req, res) => {
 app.post('/auth/login', async (req, res) => {
   const { username, password } = req.body;
   const result = await authLoginUser(username, password);
-  if ('error' in result) {
+  if (result?.error) {
     return res.status(400).json(result);
   }
   await persistData();
-//   saveDataPersistently();
   return res.status(200).json(result);
 });
 
-app.put('/profile/edit', async (req, res) => {
-  const { userId, name, surname, username, bio, email } = req.body;
+app.put('/profile/edit', authenticate, async (req, res) => {
+  const userId = req.userId;
+  const { name, surname, username, bio, email } = req.body;
   const data = getData();
   const existingUser = data.users.find((user) => user.id === userId);
   const previousUser = existingUser ? { ...existingUser } : null;
   const result = editProfile(userId, name, surname, username, bio, email);
-  if ('error' in result) {
+  if (result?.error) {
     return res.status(400).json(result);
   }
   await persistData();
@@ -80,11 +82,11 @@ app.put('/profile/edit', async (req, res) => {
   return res.status(200).json(result);
 });
 
-app.post('/profile/picture', upload.single('profileImage'), async (req, res) => {
+app.post('/profile/picture', authenticate, upload.single('profileImage'), async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.userId;
     const data = getData();
-    const user = data.users.find(u => u.id === Number(userId));
+    const user = data.users.find(u => u.id === userId);
 
     if (!user) {
       return res.status(404).json({
@@ -96,7 +98,7 @@ app.post('/profile/picture', upload.single('profileImage'), async (req, res) => 
     if (!req.file) {
       return res.status(400).json({
         error: "No image uploaded",
-        message: "Please upload an image file in the 'image' field"
+        message: "Please upload an image file in the 'profileImage' field"
       });
     }
 
@@ -115,7 +117,7 @@ app.post('/profile/picture', upload.single('profileImage'), async (req, res) => 
     const pictureUpdateEmail = profileUpdatedNotification(user.name, 'your profile picture was changed');
     void sendEmail(user.email, pictureUpdateEmail.subject, pictureUpdateEmail.html).catch(console.error);
 
-    return res.status(200).json(user);
+    return res.status(200).json(sanitizeUser(user));
   } catch (err) {
     return res.status(500).json({
       error: "Image upload failed",
@@ -124,11 +126,11 @@ app.post('/profile/picture', upload.single('profileImage'), async (req, res) => 
   }
 });
 
-app.post('/profile/password/change/:userid', async (req, res) => {
+app.post('/profile/password/change/:userid', authenticate, async (req, res) => {
   const { newPassword, currentPassword } = req.body;
-  const userId = parseInt(req.params.userid);
+  const userId = req.userId;
   const result = await editPassword(userId, newPassword, currentPassword);
-  if ('error' in result) {
+  if (result?.error) {
     return res.status(400).json(result);
   }
   await persistData();
@@ -150,10 +152,11 @@ app.get('/users/all', (req, res) => {
 });
 
 // Messaging routes
-app.post('/messages', async (req, res) => {
-  const { senderId, recipientId, subject, content } = req.body;
+app.post('/messages', authenticate, async (req, res) => {
+  const senderId = req.userId;
+  const { recipientId, subject, content } = req.body;
   const result = sendMessage(senderId, recipientId, subject, content);
-  if ('error' in result) {
+  if (result?.error) {
     return res.status(400).json(result);
   }
   await persistData();
@@ -166,38 +169,39 @@ app.post('/messages', async (req, res) => {
     const notification = newMessageNotification(recipient.name || recipient.username, sender.username);
     void sendEmail(recipient.email, notification.subject, notification.html).catch(console.error);
   }
-  
+
   return res.status(201).json(result);
 });
 
-app.get('/users/:userId/messages', (req, res) => {
-  const userId = parseInt(req.params.userId, 10);
+app.get('/users/:userId/messages', authenticate, (req, res) => {
+  const userId = req.userId;
   const result = getUserMessages(userId);
-  if ('error' in result) {
+  if (result?.error) {
     return res.status(400).json(result);
   }
   return res.status(200).json({
-    ...result,
-    conversations: result.conversations || [],
+    inbox: result.inbox,
+    sent: result.sent,
+    conversations: result.conversations,
   });
 });
 
-app.delete('/messages/:messageId', async (req, res) => {
+app.delete('/messages/:messageId', authenticate, async (req, res) => {
   const messageId = parseInt(req.params.messageId, 10);
-  const { userId } = req.body;
-  const result = deleteMessageForUser(messageId, parseInt(userId, 10));
-  if ('error' in result) {
+  const userId = req.userId;
+  const result = deleteMessageForUser(messageId, userId);
+  if (result?.error) {
     return res.status(400).json(result);
   }
   await persistData();
   return res.status(200).json(result);
 });
 
-app.put('/messages/:messageId/read', async (req, res) => {
+app.put('/messages/:messageId/read', authenticate, async (req, res) => {
   const messageId = parseInt(req.params.messageId, 10);
-  const { userId } = req.body;
-  const result = markMessageAsRead(messageId, parseInt(userId, 10));
-  if ('error' in result) {
+  const userId = req.userId;
+  const result = markMessageAsRead(messageId, userId);
+  if (result?.error) {
     return res.status(400).json(result);
   }
   await persistData();

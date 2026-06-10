@@ -1,6 +1,8 @@
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { getData } from "../dataStore.js";
 import { validateEmail, validateUsername, validatePasswordStrength } from "../validation.js";
+import { sanitizeUser } from "../utils/sanitize.js";
 
 function isBcryptHash(value) {
   return typeof value === "string" && (value.startsWith("$2a$") || value.startsWith("$2b$"));
@@ -16,7 +18,6 @@ function isBcryptHash(value) {
  * @returns {Promise<{newUser: object} | {error: string, message: string}>}
  */
 async function authRegisterUser(name = "", surname = "", username = "", email = "", password = "") {
-    // console.log(username, email, password);
   name = typeof name === "string" ? name.trim() : "";
   surname = typeof surname === "string" ? surname.trim() : "";
   username = typeof username === "string" ? username.trim() : "";
@@ -43,7 +44,7 @@ async function authRegisterUser(name = "", surname = "", username = "", email = 
     if (!validateEmail(email)) {
       return {
         error: "invalid email",
-        message: "email is not in the correct format)"
+        message: "email is not in the correct format"
       }
     }
     if (!validatePasswordStrength(password)) {
@@ -59,7 +60,7 @@ async function authRegisterUser(name = "", surname = "", username = "", email = 
     if (userExists) {
       return {
         error: "invalid credentials",
-        message: "user with that email or username already exits",
+        message: "user with that email or username already exists",
       };
     }
     const bio = "";
@@ -82,10 +83,9 @@ async function authRegisterUser(name = "", surname = "", username = "", email = 
       passwordHistory,
     };
     data.users.push(newUser);
-    return {newUser};
+    const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    return { newUser: sanitizeUser(newUser), token };
 }
-// console.log(authRegisterUser("bongani", "bobo@gmail.com", "passwordis123@1"));
-// console.log(authRegisterUser("bongani", "bobo@gmail.com", "password123@1"));
 
 /**
  * Authenticates a user with bcrypt password comparison.
@@ -100,7 +100,7 @@ async function authLoginUser(username, password) {
     if (!user) {
       return {
         error: "invalid credentials",
-        message: "incorrrect username or password",
+        message: "incorrect username or password",
       }
     }
     
@@ -112,7 +112,7 @@ async function authLoginUser(username, password) {
     if (!passwordMatch) {
       return {
         error: "invalid credentials",
-        message: "incorrrect username or password",
+        message: "incorrect username or password",
       }
     }
 
@@ -134,15 +134,10 @@ async function authLoginUser(username, password) {
       }
     }
 
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     return {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      name: user.name,
-      surname: user.surname,
-      bio: user.bio,
-      profilePictureUrl: user.profilePictureUrl,
-      memberSince: user.memberSince,
+      ...sanitizeUser(user),
+      token,
     };
 }
 

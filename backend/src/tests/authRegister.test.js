@@ -24,7 +24,8 @@ describe('authRegisterUser', () => {
       username: 'validuser',
       email: 'valid@email.com',
     });
-    expect(result.newUser.password).not.toBe('StrongP@ss!!1');
+    expect(result.newUser).not.toHaveProperty('password');
+    expect(result.newUser).not.toHaveProperty('passwordHistory');
     expect(result.newUser).toHaveProperty('memberSince');
 
     const data = getData();
@@ -58,7 +59,7 @@ describe('authRegisterUser', () => {
 
     expect(result).toEqual({
       error: 'invalid email',
-      message: 'email is not in the correct format)',
+      message: 'email is not in the correct format',
     });
   });
 
@@ -94,7 +95,7 @@ describe('authRegisterUser', () => {
 
     expect(result).toEqual({
       error: 'invalid credentials',
-      message: 'user with that email or username already exits',
+      message: 'user with that email or username already exists',
     });
   });
 
@@ -117,7 +118,7 @@ describe('authRegisterUser', () => {
 
     expect(result).toEqual({
       error: 'invalid credentials',
-      message: 'user with that email or username already exits',
+      message: 'user with that email or username already exists',
     });
   });
 });

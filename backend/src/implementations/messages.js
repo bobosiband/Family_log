@@ -7,7 +7,7 @@ import { sendEmail } from "../services/emailService.js";
  * @param {number} recipientId
  * @param {string} subject - max 200 chars, non-empty after trim
  * @param {string} content - non-empty after trim
- * @returns {Promise<{message: object} | {error: string, message: string}>}
+ * @returns {{message: object} | {error: string, message: string}}
  */
 function sendMessage(senderId, recipientId, subject, content) {
     const data = getData();
@@ -248,29 +248,21 @@ function buildConversationThreads(userId) {
 }
 
 /**
- * Returns inbox and sent messages for a user, newest first.
+ * Returns inbox, sent, and conversation threads for a user, newest first.
  * @param {number} userId
- * @returns {Promise<{inbox: object[], sent: object[]} | {error: string, message: string}>}
+ * @returns {{inbox: object[], sent: object[], conversations: object[]} | {error: string, message: string}}
  */
 function getUserMessages(userId) {
     const result = buildConversationThreads(userId);
-    if ('error' in result) {
+    if (result?.error) {
         return result;
     }
 
-    const response = {
+    return {
         inbox: result.inbox,
         sent: result.sent,
+        conversations: result.conversations,
     };
-
-    Object.defineProperty(response, 'conversations', {
-        value: result.conversations,
-        enumerable: false,
-        configurable: true,
-        writable: false,
-    });
-
-    return response;
 }
 
 function deleteMessageForUser(messageId, userId) {
@@ -281,7 +273,7 @@ function deleteMessageForUser(messageId, userId) {
  * Marks a message as read. Only the recipient may call this.
  * @param {number} messageId
  * @param {number} userId - must match message.recipientId
- * @returns {Promise<{success: true} | {error: string, message: string}>}
+ * @returns {{success: true} | {error: string, message: string}}
  */
 function markMessageAsRead(messageId, userId) {
     const data = getData();
