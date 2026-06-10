@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { Resend } from 'resend';
+import { validateEmail } from '../validation.js';
 
 const GMAIL_USER = process.env.GMAIL_USER || process.env.EMAIL_USER || '';
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_APP_PASSWORD || '';
@@ -69,10 +70,9 @@ export async function notifyAllUsers(subject, html) {
 
   const { getData } = await import('../dataStore.js');
   const data = getData();
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   for (const user of data.users) {
-    if (!user.email || !emailRegex.test(String(user.email).trim())) continue;
+    if (!user.email || !validateEmail(String(user.email).trim())) continue;
     try {
       if (gmailTransport) {
         await gmailTransport.sendMail({
