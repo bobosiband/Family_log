@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
+import { api } from '../lib/api';
 import styles from './style/Register.module.css';
 
 export default function Register() {
@@ -15,45 +16,34 @@ export default function Register() {
   const [statusType, setStatusType] = useState('error');
 
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { register } = useAuth();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     if (!name || !surname || !username || !email || !password || !confirmPassword) {
-      alert('Please fill in all fields');
+      setStatusType('error');
+      setStatusMessage('Please fill in all fields.');
       return;
     }
     if (!email.includes('@')) {
-      alert('Please enter a valid email');
-      setEmail('');
+      setStatusType('error');
+      setStatusMessage('Please enter a valid email address.');
       return;
     }
     if (password !== confirmPassword) {
-      alert('Passwords do not match');
-      setPassword('');
-      setConfirmPassword('');
+      setStatusType('error');
+      setStatusMessage('Passwords do not match.');
       return;
     }
     setLoading(true);
     setStatusMessage('');
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, surname, username, email, password }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        setStatusType('error');
-        setStatusMessage(data.message || 'Registration failed. Please try again.');
-        return;
-      }
-      login(data.newUser);
+      const data = await api.post('/auth/register', { name, surname, username, email, password });
+      register(data);
       navigate('/profile');
     } catch (error) {
-      console.error(error);
       setStatusType('error');
-      setStatusMessage('Server not reachable. Please try again in a moment.');
+      setStatusMessage(error.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }

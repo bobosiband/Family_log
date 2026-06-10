@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
+import { api } from '../lib/api';
 import { useState, useEffect } from 'react';
 import styles from './navbar.module.css';
 
@@ -14,8 +15,8 @@ export default function Navbar() {
 
     async function fetchUnreadCount() {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/${user.id}/messages`);
-        const data = await response.json();
+        const userId = user.id || user._id || user.userId;
+        const data = await api.get(`/users/${userId}/messages`);
         if (data.inbox) {
           setUnreadCount(data.inbox.filter(m => !m.read).length);
         }

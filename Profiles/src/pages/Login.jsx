@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
+import { api } from '../lib/api';
 import styles from './style/Login.module.css';
 
 export default function Login() {
@@ -18,29 +19,19 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!username || !password) {
-      alert('Please enter a username and password');
+      setStatusType('error');
+      setStatusMessage('Please enter a username and password.');
       return;
     }
     setLoading(true);
     setStatusMessage('');
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        setStatusType('error');
-        setStatusMessage(data.message || 'Login failed. Please check your details and try again.');
-        return;
-      }
+      const data = await api.post('/auth/login', { username, password });
       login(data);
       navigate('/profile');
     } catch (error) {
-      console.error(error);
       setStatusType('error');
-      setStatusMessage('Server not reachable. Please try again in a moment.');
+      setStatusMessage(error.message || 'Login failed. Please check your details and try again.');
     } finally {
       setLoading(false);
     }

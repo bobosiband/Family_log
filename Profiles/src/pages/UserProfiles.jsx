@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../AuthContext";
+import { api } from "../lib/api";
 import styles from "./style/UserProfile.module.css";
 
 const normalizeUsername = (value) => value?.toString().trim().replace(/^@/, "").toLowerCase();
@@ -42,13 +43,7 @@ export default function UserProfile() {
       setProfile(null);
 
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/all`);
-        if (!response.ok) {
-          const payload = await response.json().catch(() => ({}));
-          throw new Error(payload.message || "Unable to load profile.");
-        }
-
-        const data = await response.json();
+        const data = await api.get('/users/all');
         const users = Array.isArray(data) ? data : [];
         const found = users.find((item) => normalizeUsername(item.username) === normalizeUsername(username));
 

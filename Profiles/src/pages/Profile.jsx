@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
+import { api } from "../lib/api";
 import styles from "./style/Profile.module.css";
 
 const formatDate = (value) => {
@@ -38,7 +39,7 @@ const passwordStrengthLabel = (password) => {
 };
 
 export default function Profile() {
-  const { user, logout, login } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const navigate = useNavigate();
 
   const [pictureFile, setPictureFile] = useState(null);
@@ -82,23 +83,14 @@ export default function Profile() {
     if (!pictureFile || !user) return;
     setPictureStatus({ loading: true, success: "", error: "" });
     const formData = new FormData();
-    formData.append("userId", user.id || user._id || user.userId || "");
     formData.append("profileImage", pictureFile);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/profile/picture`, {
-        method: "POST",
-        body: formData,
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Upload failed");
-      }
-      login(data);
+      const data = await api.post("/profile/picture", formData);
+      refreshUser(data);
       setPictureFile(null);
-      setPictureStatus({ loading: false, success: "Profile picture updated successfully.", error: "" });
+      setPictureStatus({ loading: false, success: "Profile picture updated.", error: "" });
     } catch (err) {
-      console.error(err);
       setPictureStatus({ loading: false, success: "", error: err.message || "Unable to upload image." });
     }
   };
@@ -123,22 +115,11 @@ export default function Profile() {
     setPasswordStatus({ loading: true, success: "", error: "" });
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/profile/password/change/${user.id || user._id || user.userId}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ newPassword, currentPassword }),
-        }
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Password update failed");
-      }
-      setPasswordStatus({ loading: false, success: "Password updated successfully.", error: "" });
+      const userId = user.id || user._id || user.userId;
+      await api.post(`/profile/password/change/${userId}`, { newPassword, currentPassword });
+      setPasswordStatus({ loading: false, success: "Password updated.", error: "" });
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } catch (err) {
-      console.error(err);
       setPasswordStatus({ loading: false, success: "", error: err.message || "Unable to update password." });
     }
   };
@@ -152,8 +133,7 @@ export default function Profile() {
     return (
       <main className={styles.page}>
         <div className={styles.emptyState}>
-          <h2>Not signed in yet</h2>
-          <p>Log in to manage your profile and keep family memories up to date.</p>
+          <h2>Not signed in</h2>
           <button className={styles.primaryButton} onClick={() => navigate("/login")}>Sign in</button>
         </div>
       </main>
@@ -167,7 +147,7 @@ export default function Profile() {
           <div className={styles.profileCard}>
             <div className={styles.avatarWrapper}>
               <img
-                src={previewUrl || user.profilePictureUrl || "https://via.placeholder.com/240x240?text=No+Image"}
+                src={previewUrl || user.profilePictureUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent((user.name || user.username || 'U'))}&background=c084fc&color=fff&size=240`}
                 alt={user.username}
                 className={styles.avatar}
               />
@@ -194,12 +174,12 @@ export default function Profile() {
                 <p className={styles.username}>@{user.username}</p>
               </div>
 
-              <p className={styles.profileBio}>{user.bio || "Share a warm note about the family and what matters most."}</p>
+              <p className={styles.profileBio}>{user.bio || "No bio yet."}</p>
 
               <div className={styles.heroActions}>
                 <button className={styles.primaryButton} onClick={() => navigate("/profile/edit")}>Edit profile</button>
                 <button className={styles.secondaryButton} onClick={() => setShowPasswordForm((prev) => !prev)}>
-                  {showPasswordForm ? "Hide password" : "Change password"}
+                  {showPasswordForm ? "Hide password form" : "Change password"}
                 </button>
               </div>
 
@@ -240,8 +220,7 @@ export default function Profile() {
           </div>
 
           <div className={styles.actionCard}>
-            <h2>Profile actions</h2>
-            <p>Manage your account, picture, and security from one place.</p>
+            <h2>Account actions</h2>
             <div className={styles.actionButtons}>
               <button type="button" className={styles.secondaryButton} onClick={() => navigate("/profile/edit")}>Edit profile</button>
               <button type="button" className={styles.secondaryButton} onClick={() => fileInputRef.current?.click()}>Upload photo</button>
@@ -258,7 +237,7 @@ export default function Profile() {
         {pictureFile && (
           <section className={styles.uploadSection}>
             <div className={styles.uploadPreview}>
-              <div className={styles.uploadLabel}>Preview selected image</div>
+              <div className={styles.uploadLabel}>Preview</div>
               <img src={previewUrl} alt="Preview" />
             </div>
             <div className={styles.uploadControls}>
@@ -270,7 +249,7 @@ export default function Profile() {
                 onClick={handlePictureUpload}
                 disabled={pictureStatus.loading}
               >
-                {pictureStatus.loading ? "Uploading…" : "Save picture"}
+                {pictureStatus.loading ? "Uploading..." : "Save picture"}
               </button>
               <button
                 type="button"
@@ -291,7 +270,6 @@ export default function Profile() {
           <section className={styles.passwordSection}>
             <div className={styles.passwordHeader}>
               <h2>Change password</h2>
-              <p>Use a strong password to keep your family story safe.</p>
             </div>
             <form className={styles.passwordForm} onSubmit={handlePasswordSubmit}>
               <label>
@@ -327,29 +305,17 @@ export default function Profile() {
               {passwordStatus.error && <p className={styles.errorText}>{passwordStatus.error}</p>}
               {passwordStatus.success && <p className={styles.successText}>{passwordStatus.success}</p>}
               <button type="submit" className={styles.primaryButton} disabled={passwordStatus.loading}>
-                {passwordStatus.loading ? "Saving…" : "Update password"}
+                {passwordStatus.loading ? "Saving..." : "Update password"}
               </button>
             </form>
           </section>
         )}
 
-        <section className={styles.quickSection}>
-          <div className={styles.quickCard}>
-            <h2>Quick settings</h2>
-            <p>Fast access to your profile preferences and privacy controls.</p>
-            <div className={styles.shortcutGrid}>
-              <button type="button" className={styles.shortcutButton} onClick={() => navigate("/profile/edit")}>Update info</button>
-              <button type="button" className={styles.shortcutButton} onClick={() => fileInputRef.current?.click()}>Change photo</button>
-              <button type="button" className={styles.shortcutButton} onClick={() => setShowPasswordForm(true)}>Security</button>
-            </div>
-          </div>
-        </section>
-
         {logoutConfirm && (
           <div className={styles.confirmOverlay}>
             <div className={styles.confirmDialog}>
               <h3>Confirm logout</h3>
-              <p>Are you sure you want to sign out from your family log?</p>
+              <p>Are you sure you want to sign out?</p>
               <div className={styles.confirmActions}>
                 <button type="button" className={styles.secondaryButton} onClick={() => setLogoutConfirm(false)}>Cancel</button>
                 <button type="button" className={styles.dangerButton} onClick={handleLogout}>Logout</button>

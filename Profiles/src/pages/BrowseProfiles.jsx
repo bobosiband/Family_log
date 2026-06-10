@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { api } from "../lib/api";
 import styles from "./style/BrowseProfiles.module.css";
 
 function getMemberSince(profile) {
@@ -27,9 +28,7 @@ export default function BrowseProfiles() {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/all`);
-        if (!response.ok) throw new Error("Failed to fetch users");
-        const data = await response.json();
+        const data = await api.get('/users/all');
         setProfiles(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error(err);
