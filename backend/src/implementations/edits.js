@@ -44,7 +44,6 @@ function editProfile(userId, newName, newSurname, newUsername, newBio, newEmail)
   const userExists = data.users.find(
       (user) => (user.email === newEmail || user.username === newUsername) && user.id !== userId
   );
-  console.log(userExists);
   if (userExists) {
       return {
         error: "invalid credentials",
@@ -79,7 +78,6 @@ function editProfile(userId, newName, newSurname, newUsername, newBio, newEmail)
  * @returns {Promise<{id: number, username: string, email: string, name: string, surname: string, bio: string, profilePictureUrl: string} | {error: string, message: string}>}
  */
 async function editPassword(userId, newPassword, currentPassword) {
-  console.log(newPassword, currentPassword, userId);
   let data = getData();
   const user = data.users.find((u) => u.id === userId);
 
