@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { getData } from "../dataStore.js";
 import { validateEmail, validateUsername, validatePasswordStrength } from "../validation.js";
 import { sanitizeUser } from "../utils/sanitize.js";
@@ -83,7 +84,8 @@ async function authRegisterUser(name = "", surname = "", username = "", email = 
       passwordHistory,
     };
     data.users.push(newUser);
-    return { newUser: sanitizeUser(newUser) };
+    const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    return { newUser: sanitizeUser(newUser), token };
 }
 // console.log(authRegisterUser("bongani", "bobo@gmail.com", "passwordis123@1"));
 // console.log(authRegisterUser("bongani", "bobo@gmail.com", "password123@1"));
@@ -135,15 +137,10 @@ async function authLoginUser(username, password) {
       }
     }
 
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     return {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      name: user.name,
-      surname: user.surname,
-      bio: user.bio,
-      profilePictureUrl: user.profilePictureUrl,
-      memberSince: user.memberSince,
+      ...sanitizeUser(user),
+      token,
     };
 }
 

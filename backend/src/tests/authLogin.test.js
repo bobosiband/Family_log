@@ -24,6 +24,10 @@ describe('authLoginUser', () => {
       email: 'test@email.com',
     });
     expect(result).toHaveProperty('memberSince');
+    expect(result).toHaveProperty('token');
+    expect(typeof result.token).toBe('string');
+    expect(result).not.toHaveProperty('password');
+    expect(result).not.toHaveProperty('passwordHistory');
   });
 
   test('fails with incorrect password', async () => {
