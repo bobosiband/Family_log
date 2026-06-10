@@ -45,7 +45,7 @@ async function authRegisterUser(name = "", surname = "", username = "", email = 
     if (!validateEmail(email)) {
       return {
         error: "invalid email",
-        message: "email is not in the correct format)"
+        message: "email is not in the correct format"
       }
     }
     if (!validatePasswordStrength(password)) {
@@ -61,7 +61,7 @@ async function authRegisterUser(name = "", surname = "", username = "", email = 
     if (userExists) {
       return {
         error: "invalid credentials",
-        message: "user with that email or username already exits",
+        message: "user with that email or username already exists",
       };
     }
     const bio = "";
@@ -103,7 +103,7 @@ async function authLoginUser(username, password) {
     if (!user) {
       return {
         error: "invalid credentials",
-        message: "incorrrect username or password",
+        message: "incorrect username or password",
       }
     }
     
@@ -115,7 +115,7 @@ async function authLoginUser(username, password) {
     if (!passwordMatch) {
       return {
         error: "invalid credentials",
-        message: "incorrrect username or password",
+        message: "incorrect username or password",
       }
     }
 

@@ -35,7 +35,7 @@ describe('authLoginUser', () => {
 
     expect(result).toEqual({
       error: 'invalid credentials',
-      message: 'incorrrect username or password',
+      message: 'incorrect username or password',
     });
   });
 
@@ -44,7 +44,7 @@ describe('authLoginUser', () => {
 
     expect(result).toEqual({
       error: 'invalid credentials',
-      message: 'incorrrect username or password',
+      message: 'incorrect username or password',
     });
   });
 

@@ -29,7 +29,7 @@ function editProfile(userId, newName, newSurname, newUsername, newBio, newEmail)
   if (!validateEmail(newEmail)) {
     return {
       error: "invalid email",
-      message: "email is not in the correct format)"
+      message: "email is not in the correct format"
     }
   }
   let data = getData();
@@ -48,7 +48,7 @@ function editProfile(userId, newName, newSurname, newUsername, newBio, newEmail)
   if (userExists) {
       return {
         error: "invalid credentials",
-        message: "user with that email or username already exits",
+        message: "user with that email or username already exists",
       };
   }
 
@@ -94,7 +94,7 @@ async function editPassword(userId, newPassword, currentPassword) {
   if (!passwordMatch) {
     return {
       error: "wrong password",
-      message: "incorrrect password",
+      message: "incorrect password",
     };
   }
 

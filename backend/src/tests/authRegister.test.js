@@ -59,7 +59,7 @@ describe('authRegisterUser', () => {
 
     expect(result).toEqual({
       error: 'invalid email',
-      message: 'email is not in the correct format)',
+      message: 'email is not in the correct format',
     });
   });
 
@@ -95,7 +95,7 @@ describe('authRegisterUser', () => {
 
     expect(result).toEqual({
       error: 'invalid credentials',
-      message: 'user with that email or username already exits',
+      message: 'user with that email or username already exists',
     });
   });
 
@@ -118,7 +118,7 @@ describe('authRegisterUser', () => {
 
     expect(result).toEqual({
       error: 'invalid credentials',
-      message: 'user with that email or username already exits',
+      message: 'user with that email or username already exists',
     });
   });
 });
