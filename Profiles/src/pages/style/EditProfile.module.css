@@ -149,6 +149,20 @@
   transform: none;
 }
 
+.errorText {
+  margin: 0.25rem 0 0;
+  color: #a01b44;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.successText {
+  margin: 0.25rem 0 0;
+  color: #065f46;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 @media (max-width: 500px) {
   .card {
     padding: 30px 20px;

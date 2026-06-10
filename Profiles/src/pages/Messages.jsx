@@ -1,16 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../AuthContext";
+import { api } from "../lib/api";
 import styles from "./style/Messages.module.css";
 
-const normalizeUsername = (value) => value?.toString().trim().replace(/^@/, "").toLowerCase();
-const getUserId = (profile) => profile?.id || profile?._id || profile?.userId || null;
-
 const formatTimestamp = (value) => {
-  if (!value) return "-";
+  if (!value) return "";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
-
+  if (Number.isNaN(date.getTime())) return "";
   return new Intl.DateTimeFormat(undefined, {
     month: "short",
     day: "numeric",
@@ -19,233 +15,316 @@ const formatTimestamp = (value) => {
   }).format(date);
 };
 
-const formatPreview = (value) => {
-  if (!value) return "No messages yet";
-  return value.length > 52 ? `${value.slice(0, 52)}…` : value;
-};
+const getId = (obj) => obj?.id || obj?._id || obj?.userId || null;
 
-export default function Messages() {
-  const { user } = useAuth();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [conversations, setConversations] = useState([]);
-  const [selectedConversationId, setSelectedConversationId] = useState(null);
-  const [pendingRecipient, setPendingRecipient] = useState(null);
-  const [draftMessage, setDraftMessage] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [sending, setSending] = useState(false);
-
-  const requestedUsername = useMemo(() => normalizeUsername(searchParams.get("with")), [searchParams]);
-
-  const selectedConversation = useMemo(
-    () => conversations.find((conversation) => conversation.partnerId === selectedConversationId) || null,
-    [conversations, selectedConversationId]
+function SkeletonRow() {
+  return (
+    <div className={styles.skeletonRow}>
+      <div className={styles.skeletonCircle} />
+      <div className={styles.skeletonLines}>
+        <div className={styles.skeletonLine} />
+        <div className={styles.skeletonLineShort} />
+      </div>
+    </div>
   );
+}
 
-  const activeConversation = useMemo(() => {
-    if (selectedConversation) {
-      return selectedConversation;
-    }
+function ComposeModal({ users, currentUserId, onClose, onSent }) {
+  const [recipientId, setRecipientId] = useState("");
+  const [subject, setSubject] = useState("");
+  const [content, setContent] = useState("");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
 
-    if (!pendingRecipient) {
-      return null;
-    }
-
-    return {
-      partnerId: pendingRecipient.id,
-      partnerUsername: pendingRecipient.username,
-      partnerName: pendingRecipient.name || "",
-      partnerSurname: pendingRecipient.surname || "",
-      unreadCount: 0,
-      lastMessageAt: null,
-      lastMessagePreview: "",
-      messages: [],
-    };
-  }, [pendingRecipient, selectedConversation]);
-
-  const hasChatOpen = Boolean(activeConversation);
-
-  const visibleMessages = activeConversation?.messages || [];
-
-  const refreshConversations = async () => {
-    if (!user?.id) return;
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/${user.id}/messages`);
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to load messages.");
-      }
-
-      const nextConversations = Array.isArray(data.conversations) ? data.conversations : [];
-      setConversations(nextConversations);
-
-      setSelectedConversationId((currentId) => {
-        if (currentId !== null && nextConversations.some((conversation) => conversation.partnerId === currentId)) {
-          return currentId;
-        }
-
-        return null;
-      });
-    } catch (err) {
-      console.error(err);
-      setError(err.message || "Failed to load messages.");
-    }
-  };
-
-  useEffect(() => {
-    if (!user?.id) return;
-
-    let isActive = true;
-
-    const loadMessages = async (silent = false) => {
-      try {
-        if (!silent) {
-          setLoading(true);
-        }
-        setError("");
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/${user.id}/messages`);
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to load messages.");
-        }
-
-        const nextConversations = Array.isArray(data.conversations) ? data.conversations : [];
-        if (!isActive) return;
-
-        setConversations(nextConversations);
-        setSelectedConversationId((currentId) => {
-          if (currentId !== null && nextConversations.some((conversation) => conversation.partnerId === currentId)) {
-            return currentId;
-          }
-
-          return null;
-        });
-      } catch (err) {
-        if (!isActive) return;
-        console.error(err);
-        setError(err.message || "Failed to load messages.");
-      } finally {
-        if (isActive) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadMessages();
-    const interval = setInterval(() => loadMessages(true), 10000);
-
-    return () => {
-      isActive = false;
-      clearInterval(interval);
-    };
-  }, [user?.id]);
-
-  useEffect(() => {
-    if (!user?.id || !requestedUsername) {
-      setPendingRecipient(null);
-      return;
-    }
-
-    let isActive = true;
-
-    const resolveRecipient = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/all`);
-        if (!response.ok) {
-          const payload = await response.json().catch(() => ({}));
-          throw new Error(payload.message || "Failed to resolve conversation.");
-        }
-
-        const data = await response.json();
-        const users = Array.isArray(data) ? data : [];
-        const found = users.find((candidate) => normalizeUsername(candidate.username) === requestedUsername);
-
-        if (!isActive || !found) return;
-
-        setPendingRecipient({
-          id: getUserId(found),
-          username: found.username || "",
-          name: found.name || "",
-          surname: found.surname || "",
-        });
-      } catch (err) {
-        if (!isActive) return;
-        console.error(err);
-        setError(err.message || "Failed to resolve conversation.");
-      }
-    };
-
-    resolveRecipient();
-
-    return () => {
-      isActive = false;
-    };
-  }, [requestedUsername, user?.id]);
-
-  useEffect(() => {
-    if (!pendingRecipient) return;
-
-    const matchedConversation = conversations.find(
-      (conversation) => normalizeUsername(conversation.partnerUsername) === normalizeUsername(pendingRecipient.username)
-    );
-
-    if (matchedConversation) {
-      setSelectedConversationId(matchedConversation.partnerId);
-      setPendingRecipient(null);
-    }
-  }, [conversations, pendingRecipient]);
-
-  const handleSelectConversation = (partnerId) => {
-    setSelectedConversationId(partnerId);
-    setPendingRecipient(null);
-    setError("");
-
-    const selectedThread = conversations.find((conversation) => conversation.partnerId === partnerId);
-    if (selectedThread?.partnerUsername) {
-      setSearchParams({ with: selectedThread.partnerUsername });
-    }
-  };
-
-  const handleSendMessage = async (event) => {
-    event.preventDefault();
-
-    if (!activeConversation || !draftMessage.trim()) return;
+  const handleSend = async (e) => {
+    e.preventDefault();
+    if (!recipientId) { setError("Choose a recipient."); return; }
+    if (!subject.trim()) { setError("Subject is required."); return; }
+    if (subject.trim().length > 200) { setError("Subject must be 200 characters or fewer."); return; }
+    if (!content.trim()) { setError("Message cannot be empty."); return; }
 
     setSending(true);
     setError("");
-
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/messages`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          senderId: user.id,
-          recipientId: activeConversation.partnerId,
-          subject: activeConversation.partnerUsername,
-          content: draftMessage.trim(),
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to send message.");
-      }
-
-      setDraftMessage("");
-      await refreshConversations();
+      await api.post("/messages", { recipientId, subject: subject.trim(), content: content.trim() });
+      onSent();
+      onClose();
     } catch (err) {
-      console.error(err);
       setError(err.message || "Failed to send message.");
     } finally {
       setSending(false);
     }
   };
 
+  const recipients = users.filter((u) => getId(u) !== currentUserId);
+
+  return (
+    <div className={styles.modalBackdrop} onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="compose-title">
+        <div className={styles.modalHeader}>
+          <h2 id="compose-title">New message</h2>
+          <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close">
+            &#215;
+          </button>
+        </div>
+
+        <form onSubmit={handleSend} className={styles.composeForm}>
+          <div className={styles.formField}>
+            <label htmlFor="compose-to">To</label>
+            <select
+              id="compose-to"
+              value={recipientId}
+              onChange={(e) => setRecipientId(e.target.value)}
+              disabled={sending}
+            >
+              <option value="">Select a recipient</option>
+              {recipients.map((u) => (
+                <option key={getId(u)} value={getId(u)}>
+                  {u.name ? `${u.name} ${u.surname || ""}`.trim() : u.username} (@{u.username})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={styles.formField}>
+            <label htmlFor="compose-subject">Subject</label>
+            <input
+              id="compose-subject"
+              type="text"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="Subject"
+              maxLength={200}
+              disabled={sending}
+            />
+            <span className={styles.charCount}>{subject.length}/200</span>
+          </div>
+
+          <div className={styles.formField}>
+            <label htmlFor="compose-content">Message</label>
+            <textarea
+              id="compose-content"
+              rows={5}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Write your message..."
+              disabled={sending}
+            />
+          </div>
+
+          {error && <p className={styles.errorText}>{error}</p>}
+
+          <div className={styles.composeActions}>
+            <button type="button" className={styles.ghostBtn} onClick={onClose} disabled={sending}>
+              Cancel
+            </button>
+            <button type="submit" className={styles.sendBtn} disabled={sending}>
+              {sending ? "Sending..." : "Send"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function MessageItem({ message, isSent, onDelete, onMarkRead }) {
+  const [expanded, setExpanded] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const handleExpand = async () => {
+    setExpanded((p) => !p);
+    if (!expanded && !isSent && !message.read) {
+      await onMarkRead(message.id || message._id);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirmDelete) { setConfirmDelete(true); return; }
+    setDeleting(true);
+    await onDelete(message.id || message._id);
+  };
+
+  return (
+    <div className={`${styles.messageItem} ${!isSent && !message.read ? styles.unread : ""}`}>
+      <button type="button" className={styles.messageRow} onClick={handleExpand}>
+        <div className={styles.messageAvatar}>
+          {(isSent ? (message.recipientName || message.recipientUsername || "?") : (message.senderName || message.senderUsername || "?"))[0].toUpperCase()}
+        </div>
+        <div className={styles.messageMeta}>
+          <div className={styles.messageTop}>
+            <span className={styles.messagePerson}>
+              {isSent
+                ? (message.recipientName || `@${message.recipientUsername}` || "Unknown")
+                : (message.senderName || `@${message.senderUsername}` || "Unknown")}
+            </span>
+            <span className={styles.messageTime}>{formatTimestamp(message.createdAt)}</span>
+          </div>
+          <p className={styles.messageSubject}>{message.subject}</p>
+          {!expanded && (
+            <p className={styles.messagePreview}>
+              {message.content.length > 80 ? `${message.content.slice(0, 80)}...` : message.content}
+            </p>
+          )}
+        </div>
+        {!isSent && !message.read && <span className={styles.unreadDot} aria-label="Unread" />}
+      </button>
+
+      {expanded && (
+        <div className={styles.messageBody}>
+          <p>{message.content}</p>
+          <div className={styles.messageActions}>
+            {confirmDelete ? (
+              <>
+                <span className={styles.confirmText}>Delete this message?</span>
+                <button type="button" className={styles.dangerBtn} onClick={handleDelete} disabled={deleting}>
+                  {deleting ? "Deleting..." : "Yes, delete"}
+                </button>
+                <button type="button" className={styles.ghostBtn} onClick={() => setConfirmDelete(false)}>
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button type="button" className={styles.dangerBtnGhost} onClick={handleDelete}>
+                Delete
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ConversationThread({ thread, currentUserId }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className={styles.threadCard}>
+      <button type="button" className={styles.threadHeader} onClick={() => setExpanded((p) => !p)}>
+        <div className={styles.messageAvatar}>
+          {(thread.partnerUsername || "?")[0].toUpperCase()}
+        </div>
+        <div className={styles.messageMeta}>
+          <div className={styles.messageTop}>
+            <span className={styles.messagePerson}>@{thread.partnerUsername}</span>
+            <span className={styles.messageTime}>{formatTimestamp(thread.lastMessageAt)}</span>
+          </div>
+          <p className={styles.messageSubject}>
+            {thread.messages?.length ?? 0} message{thread.messages?.length !== 1 ? "s" : ""}
+          </p>
+          {thread.unreadCount > 0 && (
+            <span className={styles.unreadBadge}>{thread.unreadCount} unread</span>
+          )}
+        </div>
+        <span className={styles.chevron}>{expanded ? "▲" : "▼"}</span>
+      </button>
+
+      {expanded && thread.messages && (
+        <div className={styles.threadMessages}>
+          {thread.messages.map((msg) => {
+            const isMine = (msg.senderId === currentUserId) || (msg.sender === currentUserId);
+            return (
+              <div key={msg.id || msg._id} className={`${styles.bubble} ${isMine ? styles.bubbleMine : styles.bubbleTheirs}`}>
+                <p>{msg.content}</p>
+                <span className={styles.bubbleTime}>{formatTimestamp(msg.createdAt)}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const TABS = ["inbox", "sent", "conversations"];
+
+export default function Messages() {
+  const { user } = useAuth();
+  const userId = useMemo(() => getId(user), [user]);
+
+  const [tab, setTab] = useState("inbox");
+  const [data, setData] = useState({ inbox: [], sent: [], conversations: [] });
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showCompose, setShowCompose] = useState(false);
+
+  const fetchMessages = useCallback(async (silent = false) => {
+    if (!userId) return;
+    try {
+      if (!silent) setLoading(true);
+      setError("");
+      const res = await api.get(`/users/${userId}/messages`);
+      setData({
+        inbox: Array.isArray(res.inbox) ? res.inbox : [],
+        sent: Array.isArray(res.sent) ? res.sent : [],
+        conversations: Array.isArray(res.conversations) ? res.conversations : [],
+      });
+    } catch (err) {
+      if (!silent) setError(err.message || "Failed to load messages.");
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    fetchMessages();
+    const interval = setInterval(() => fetchMessages(true), 30000);
+    return () => clearInterval(interval);
+  }, [fetchMessages]);
+
+  useEffect(() => {
+    if (!userId) return;
+    api.get('/users/all')
+      .then((res) => setUsers(Array.isArray(res) ? res : []))
+      .catch(() => {});
+  }, [userId]);
+
+  const handleMarkRead = async (messageId) => {
+    try {
+      await api.put(`/messages/${messageId}/read`, {});
+      setData((prev) => ({
+        ...prev,
+        inbox: prev.inbox.map((m) =>
+          (m.id || m._id) === messageId ? { ...m, read: true } : m
+        ),
+      }));
+    } catch {
+      // silent — freshness will catch up on next poll
+    }
+  };
+
+  const handleDelete = async (messageId) => {
+    try {
+      await api.delete(`/messages/${messageId}`);
+      setData((prev) => ({
+        ...prev,
+        inbox: prev.inbox.filter((m) => (m.id || m._id) !== messageId),
+        sent: prev.sent.filter((m) => (m.id || m._id) !== messageId),
+      }));
+    } catch (err) {
+      setError(err.message || "Failed to delete message.");
+    }
+  };
+
+  const inboxUnread = data.inbox.filter((m) => !m.read).length;
+
+  const tabLabel = (t) => {
+    if (t === "inbox" && inboxUnread > 0) return `Inbox (${inboxUnread})`;
+    if (t === "sent") return "Sent";
+    if (t === "conversations") return "Threads";
+    return "Inbox";
+  };
+
   if (loading) {
     return (
       <main className={styles.page}>
         <div className={styles.shell}>
-          <div className={styles.loadingState}>Loading conversations...</div>
+          <div className={styles.skeletonList}>
+            {Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)}
+          </div>
         </div>
       </main>
     );
@@ -253,132 +332,101 @@ export default function Messages() {
 
   return (
     <main className={styles.page}>
-      <div className={`${styles.shell} ${hasChatOpen ? styles.chatOpen : ""}`}>
-        <aside className={styles.sidebar}>
-          <div className={styles.header}>
+      <div className={styles.shell}>
+        <div className={styles.pageHeader}>
+          <div>
             <p className={styles.kicker}>Messages</p>
-            <h1>Chat with your family</h1>
-            <p>Pick a thread on the left to keep the conversation going.</p>
+            <h1>Your mail</h1>
           </div>
+          <button
+            type="button"
+            className={styles.composeBtn}
+            onClick={() => setShowCompose(true)}
+          >
+            Compose
+          </button>
+        </div>
 
-          {error && <div className={styles.errorBanner}>{error}</div>}
+        {error && <p className={styles.errorBanner}>{error}</p>}
 
-          <div className={styles.threadList}>
-            {conversations.length === 0 ? (
-              <div className={styles.emptyThreadList}>
-                <h2>No conversations yet</h2>
-                <p>Your threads will appear here once someone starts a chat with you.</p>
-              </div>
-            ) : (
-              conversations.map((conversation) => {
-                const isActive = conversation.partnerId === selectedConversationId;
-                return (
-                  <button
-                    key={conversation.partnerId}
-                    type="button"
-                    className={`${styles.threadCard} ${isActive ? styles.threadActive : ""}`}
-                    onClick={() => handleSelectConversation(conversation.partnerId)}
-                  >
-                    <div className={styles.threadAvatar}>
-                      {conversation.partnerUsername?.[0]?.toUpperCase() || "?"}
-                    </div>
-                    <div className={styles.threadBody}>
-                      <div className={styles.threadTopRow}>
-                        <span className={styles.threadName}>@{conversation.partnerUsername}</span>
-                        <span className={styles.threadTime}>{formatTimestamp(conversation.lastMessageAt)}</span>
-                      </div>
-                      <p className={styles.threadPreview}>{formatPreview(conversation.lastMessagePreview)}</p>
-                    </div>
-                    {conversation.unreadCount > 0 && (
-                      <span className={styles.unreadBadge}>{conversation.unreadCount}</span>
-                    )}
-                  </button>
-                );
-              })
-            )}
-          </div>
-        </aside>
+        <div className={styles.tabs} role="tablist">
+          {TABS.map((t) => (
+            <button
+              key={t}
+              type="button"
+              role="tab"
+              aria-selected={tab === t}
+              className={`${styles.tab} ${tab === t ? styles.tabActive : ""}`}
+              onClick={() => setTab(t)}
+            >
+              {tabLabel(t)}
+            </button>
+          ))}
+        </div>
 
-        <section className={styles.chatPanel}>
-          {activeConversation ? (
-            <div className={styles.chatCard}>
-              <header className={styles.chatHeader}>
-                <button
-                  type="button"
-                  className={styles.backButton}
-                    onClick={() => {
-                      setSelectedConversationId(null);
-                      setPendingRecipient(null);
-                      setSearchParams({});
-                    }}
-                >
-                  ← Threads
-                </button>
-                <div>
-                  <p className={styles.chatKicker}>Conversation</p>
-                  <h2>@{activeConversation.partnerUsername}</h2>
-                </div>
-                <div className={styles.chatMeta}>
-                  {activeConversation.unreadCount > 0 ? (
-                    <span>{activeConversation.unreadCount} unread</span>
-                  ) : (
-                    <span>{activeConversation.messages.length} messages</span>
-                  )}
-                </div>
-              </header>
-
-              <div className={styles.messageFeed}>
-                {visibleMessages.length === 0 ? (
-                  <div className={styles.emptyChatState}>
-                    <h3>Start the conversation</h3>
-                    <p>Send the first message in this thread using the composer below.</p>
-                  </div>
-                ) : (
-                  visibleMessages.map((message) => {
-                    const isSent = message.senderId === user.id;
-                    return (
-                      <div
-                        key={message.id}
-                        className={`${styles.messageRow} ${isSent ? styles.sentRow : styles.receivedRow}`}
-                      >
-                        <article className={`${styles.bubble} ${isSent ? styles.sentBubble : styles.receivedBubble}`}>
-                          <p className={styles.messageText}>{message.content}</p>
-                          <span className={styles.timestamp}>{formatTimestamp(message.createdAt)}</span>
-                        </article>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-
-              <form className={styles.composer} onSubmit={handleSendMessage}>
-                <input
-                  type="text"
-                  className={styles.composerInput}
-                  value={draftMessage}
-                  onChange={(event) => setDraftMessage(event.target.value)}
-                  placeholder={`Message @${activeConversation.partnerUsername}...`}
-                  disabled={sending}
-                />
-                <button type="submit" className={styles.sendButton} disabled={sending || !draftMessage.trim()}>
-                  {sending ? "Sending…" : "Send"}
-                </button>
-              </form>
-            </div>
-          ) : (
-            <div className={styles.emptyState}>
-              <div className={styles.emptyStateCard}>
-                <p className={styles.chatKicker}>Messages</p>
-                <h2>Choose a conversation</h2>
-                <p>
-                  Your chats will appear here as bubble threads. Select one from the sidebar to read and reply in the same
-                  thread.
-                </p>
-              </div>
+        <div role="tabpanel">
+          {tab === "inbox" && (
+            <div className={styles.list}>
+              {data.inbox.length === 0 ? (
+                <p className={styles.emptyState}>No messages in your inbox.</p>
+              ) : (
+                data.inbox.map((msg) => (
+                  <MessageItem
+                    key={msg.id || msg._id}
+                    message={msg}
+                    isSent={false}
+                    onDelete={handleDelete}
+                    onMarkRead={handleMarkRead}
+                  />
+                ))
+              )}
             </div>
           )}
-        </section>
+
+          {tab === "sent" && (
+            <div className={styles.list}>
+              {data.sent.length === 0 ? (
+                <p className={styles.emptyState}>No sent messages yet.</p>
+              ) : (
+                data.sent.map((msg) => (
+                  <MessageItem
+                    key={msg.id || msg._id}
+                    message={msg}
+                    isSent={true}
+                    onDelete={handleDelete}
+                    onMarkRead={handleMarkRead}
+                  />
+                ))
+              )}
+            </div>
+          )}
+
+          {tab === "conversations" && (
+            <div className={styles.list}>
+              {data.conversations.length === 0 ? (
+                <p className={styles.emptyState}>No conversations yet.</p>
+              ) : (
+                data.conversations.map((thread) => (
+                  <ConversationThread
+                    key={thread.partnerId || thread.partnerUsername}
+                    thread={thread}
+                    currentUserId={userId}
+                  />
+                ))
+              )}
+            </div>
+          )}
+        </div>
       </div>
+
+      {showCompose && (
+        <ComposeModal
+          users={users}
+          currentUserId={userId}
+          onClose={() => setShowCompose(false)}
+          onSent={fetchMessages}
+        />
+      )}
     </main>
   );
 }
