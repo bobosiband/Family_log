@@ -254,7 +254,7 @@ function buildConversationThreads(userId) {
  */
 function getUserMessages(userId) {
     const result = buildConversationThreads(userId);
-    if ('error' in result) {
+    if (result?.error) {
         return result;
     }
 
